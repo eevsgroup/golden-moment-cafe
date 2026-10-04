@@ -1,0 +1,392 @@
+@import "tailwindcss";
+
+/* =========================================================
+   GOLDEN MOMENT
+   Global Design System
+   ========================================================= */
+
+@theme {
+  /* =======================================================
+     TYPOGRAPHY
+     ======================================================= */
+
+  --font-display: var(--font-display-family);
+  --font-sans: var(--font-sans-family);
+  --font-signature: var(--font-signature-family), "Segoe Print", "Bradley Hand", cursive;
+
+  /* =======================================================
+     PRIMITIVE COLORS
+     Brand palette
+     ======================================================= */
+
+  --color-cream: #f4efe6;
+  --color-bone: #e9e0d2;
+  --color-sand: #c9b89f;
+
+  --color-espresso: #201b17;
+  --color-cocoa: #513b2d;
+
+  --color-terracotta: #a86145;
+  --color-olive: #74745e;
+
+  --color-white: #fffdf8;
+
+  /* =======================================================
+     SEMANTIC COLORS
+     Components should prefer these over primitives.
+     ======================================================= */
+
+  --color-background: #f4efe6;
+  --color-background-muted: #e9e0d2;
+  --color-background-dark: #201b17;
+
+  --color-surface: #eee7da;
+  --color-surface-elevated: #fffdf8;
+  --color-surface-dark: #2a231e;
+
+  --color-text: #201b17;
+  --color-text-secondary: #513b2d;
+  --color-text-muted: #74745e;
+  --color-text-inverse: #f4efe6;
+
+  --color-accent: #a86145;
+  --color-accent-hover: #513b2d;
+
+  --color-border: rgb(32 27 23 / 12%);
+  --color-border-strong: rgb(32 27 23 / 22%);
+  --color-border-inverse: rgb(255 253 248 / 18%);
+
+  /* =======================================================
+     GLASS
+     ======================================================= */
+
+  --color-glass: rgb(255 253 248 / 8%);
+  --color-glass-strong: rgb(255 253 248 / 14%);
+  --color-glass-dark: rgb(32 27 23 / 72%);
+
+  /* =======================================================
+     RADIUS
+     ======================================================= */
+
+  --radius-organic: 2rem;
+  --radius-card: 1.25rem;
+  --radius-pill: 999px;
+
+  /* =======================================================
+     SHADOWS
+     ======================================================= */
+
+  --shadow-soft: 0 20px 60px rgb(32 27 23 / 8%);
+  --shadow-deep: 0 30px 100px rgb(32 27 23 / 18%);
+
+  /* =======================================================
+     LAYOUT
+     ======================================================= */
+
+  --container-page: 1440px;
+  --container-content: 1440px;
+  --container-narrow: 760px;
+
+  --spacing-page: clamp(1.25rem, 3vw, 3rem);
+  --spacing-section: clamp(3.5rem, 7vw, 7rem);
+  --spacing-section-small: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+/* =========================================================
+   ROOT
+   ========================================================= */
+
+:root {
+  --background: var(--color-background);
+  --foreground: var(--color-text);
+}
+
+/* =========================================================
+   BASE / RESET
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+  background: var(--color-background);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-sans-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  color: inherit;
+}
+
+button {
+  border: 0;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--color-espresso);
+  color: var(--color-cream);
+}
+
+/* =========================================================
+   TYPOGRAPHY
+   ========================================================= */
+
+.font-display {
+  font-family: var(--font-display-family);
+}
+
+.font-sans {
+  font-family: var(--font-sans-family);
+}
+
+.editorial-heading {
+  margin: 0;
+  font-family: var(--font-display-family);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+}
+
+.eyebrow {
+  font-family: var(--font-sans-family);
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.label-micro {
+  font-family: var(--font-sans-family);
+  font-size: 0.75rem; /* 12px */
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.label-mini {
+  font-family: var(--font-sans-family);
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
+
+.page-container {
+  width: min(calc(100% - (var(--spacing-page) * 2)),
+      var(--container-page));
+  margin-inline: auto;
+}
+
+.content-container {
+  width: min(calc(100% - (var(--spacing-page) * 2)),
+      var(--container-content));
+  margin-inline: auto;
+}
+
+.narrow-container {
+  width: min(calc(100% - (var(--spacing-page) * 2)),
+      var(--container-narrow));
+  margin-inline: auto;
+}
+
+.section-padding {
+  padding-block: var(--spacing-section);
+}
+
+.section-padding-small {
+  padding-block: var(--spacing-section-small);
+}
+
+/* =========================================================
+   GLASSMORPHISM
+   Use sparingly.
+   ========================================================= */
+
+.glass {
+  border: 1px solid var(--color-border-inverse);
+  background: var(--color-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-strong {
+  border: 1px solid var(--color-border-inverse);
+  background: var(--color-glass-strong);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
+
+/* =========================================================
+   GRAIN / TEXTURE
+   ========================================================= */
+
+.grain {
+  position: relative;
+}
+
+.grain::after {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  content: "";
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+}
+
+/* =========================================================
+   FOCUS STATES
+   Accessible keyboard interaction.
+   ========================================================= */
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+/* =========================================================
+   FORM ELEMENTS
+   ========================================================= */
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+select {
+  outline: none;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: var(--color-accent);
+}
+
+/* =========================================================
+   SCROLLBAR
+   Subtle and aligned with the brand.
+   ========================================================= */
+
+html {
+  scrollbar-color: var(--color-cocoa) var(--color-background);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--color-cocoa);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-espresso);
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes arrow-bounce-x {
+  0%, 100% {
+    transform: translateX(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateX(5px);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-arrow-bounce {
+  animation: arrow-bounce-x 1.5s infinite;
+}
+
+/* =========================================================
+   REDUCED MOTION
+   GSAP will respect this in our animation layer.
+   CSS transitions are also minimized here.
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
