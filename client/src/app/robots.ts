@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/private/', '/api/'],
     },
-    sitemap: 'https://goldenmoment.com.au/sitemap.xml',
+    sitemap: 'https://goldenmoment.au/sitemap.xml',
   };
 }

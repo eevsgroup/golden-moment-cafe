@@ -1,8 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Replace this with your actual production domain when you deploy
-  const baseUrl = 'https://goldenmoment.com.au';
+  const baseUrl = 'https://goldenmoment.au';
 
   return [
     {

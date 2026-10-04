@@ -31,11 +31,11 @@ export const metadata: Metadata = {
   keywords: ["Cafe in Canberra", "Canberra Restaurant", "Breakfast Canberra", "Coffee Canberra", "Golden Moment Cafe", "Best burgers Canberra", "Office Catering Canberra"],
   authors: [{ name: "Golden Moment" }],
   creator: "Golden Moment",
-  metadataBase: new URL("https://goldenmoment.com.au"), // Replace with actual production URL
+  metadataBase: new URL("https://goldenmoment.au"),
   openGraph: {
     type: "website",
     locale: "en_AU",
-    url: "https://goldenmoment.com.au",
+    url: "https://goldenmoment.au",
     title: "Golden Moment Café & Restaurant",
     description: "Breakfast, burgers, curries and great coffee — served daily from 7 AM in the heart of Canberra.",
     siteName: "Golden Moment",
@@ -82,9 +82,9 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Restaurant",
               "name": "Golden Moment Café & Restaurant",
-              "image": "https://goldenmoment.com.au/images/heroimg.png",
-              "@id": "https://goldenmoment.com.au",
-              "url": "https://goldenmoment.com.au",
+              "image": "https://goldenmoment.au/images/heroimg.png",
+              "@id": "https://goldenmoment.au",
+              "url": "https://goldenmoment.au",
               "telephone": "+61433056145",
               "address": {
                 "@type": "PostalAddress",
