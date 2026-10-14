@@ -1,324 +1,653 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import GMDivider from "@/components/ui/GMDivider";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { useCart } from "@/lib/context/CartContext";
+import { fetchMenu } from "@/lib/api/menu";
+import type { MenuCategory, MenuItem } from "@/lib/types";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const MENU_CATEGORIES = [
-    "BURGERS",
-    "PASTAS",
-    "RICE & CURRY",
-    "NOODLES & DUMPLINGS",
-    "CLASSICS & SIDES",
-    "ADD-ONS"
-];
-
-const getPlaceholderImage = (category: string) => {
-    switch (category) {
-        case "PASTAS": return "https://images.unsplash.com/photo-1621996311239-531f2425111b?q=80&w=800&auto=format&fit=crop";
-        case "BURGERS": return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=800&auto=format&fit=crop";
-        case "RICE & CURRY": return "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop";
-        case "NOODLES & DUMPLINGS": return "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=800&auto=format&fit=crop";
-        case "CLASSICS & SIDES": return "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=800&auto=format&fit=crop";
-        case "ADD-ONS": return "https://images.unsplash.com/photo-1525351484163-c529a90d566f?q=80&w=800&auto=format&fit=crop";
-        default: return "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=800&auto=format&fit=crop";
-    }
+const CATEGORY_IMAGES: Record<string, string> = {
+    PASTAS:
+        "https://images.unsplash.com/photo-1621996311239-531f2425111b?q=80&w=900&auto=format&fit=crop",
+    BURGERS:
+        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=900&auto=format&fit=crop",
+    "RICE & CURRY":
+        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=900&auto=format&fit=crop",
+    "NOODLES & DUMPLINGS":
+        "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=900&auto=format&fit=crop",
+    "CLASSICS & SIDES":
+        "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=900&auto=format&fit=crop",
+    "ADD-ONS":
+        "https://images.unsplash.com/photo-1525351484163-c529a90d566f?q=80&w=900&auto=format&fit=crop",
+    "COFFEE & DRINKS":
+        "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?q=80&w=900&auto=format&fit=crop",
+    "BRUNCH & CLASSICS":
+        "https://images.unsplash.com/photo-1525351484163-c529a90d566f?q=80&w=900&auto=format&fit=crop",
 };
 
-const MENU_DATA = [
-    { category: "PASTAS", name: "Creamy chicken mushroom", price: "$17", desc: "al dente Pasta, Sautéed mushrooms, Tender chicken, creamy garlic sauce, finished with parmesan and olive oil.", special: true },
-    { category: "PASTAS", name: "Italian Rosè Pasta", price: "$17", desc: "A creamy blend of tomato passata and cream, tossed with chicken & pasta, with parmesan and fresh herbs" },
-    { category: "PASTAS", name: "Peri Peri Chicken", price: "$17", desc: "Tender chicken, Pasta tossed in a blend of spicy peri peri sauce, finished with parmesan and fresh herbs" },
-    { category: "PASTAS", name: "Pesto Chicken", price: "$16", desc: "Grilled chicken & Pasta tossed in a blend of creamy basil pesto sauce, mix herbs finsihed with parmesan and olive oil" },
-    
-    { category: "BURGERS", name: "Cheese Burger", price: "$14", desc: "Grass fed Beef, Cheese, Tomato, mustard, pickle side of chips" },
-    { category: "BURGERS", name: "Double Cheeseburger", price: "$18", desc: "Double Grass fed Beef, double Cheese, tomato, mustard, pickle with a side of chips" },
-    { category: "BURGERS", name: "GM Classic Burger", price: "$20", desc: "Iceberg lettuce, Tomato, Grass fed Beef Patty, Cheese, Bacon, Pickles & GM house sauce with side of chips" },
-    { category: "BURGERS", name: "GM Classic Chicken", price: "$20", desc: "Iceberg lettuce, Tomato, chicken schnitzel, bacon, cheese, GM house sauce with a side of chips" },
-    { category: "BURGERS", name: "Chilli Burger", price: "$20", desc: "Grass fed Beef, Cheese, Streaky Bacon, lettuce, Jalapenoś, Hot sauce, house sauce & side of chips" },
-    { category: "BURGERS", name: "Veggie Burger", price: "$20", desc: "Halloumi patty, Spinach , Tomato slice, Slaw & sweet Chilli sauce with a side of chips" },
-    { category: "BURGERS", name: "GM Lunch Box", price: "$22", desc: "CheeseBurger with Side of Fries, 3pcs wings and a can of drink", special: true },
+const DEFAULT_IMAGE =
+    "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=900&auto=format&fit=crop";
 
-    { category: "RICE & CURRY", name: "Beef Curry", price: "$16", desc: "Curry with rice of Your Choice (Fried / Plain)" },
-    { category: "RICE & CURRY", name: "Goat Curry", price: "$16", desc: "Curry with rice of Your Choice (Fried / Plain)" },
-    { category: "RICE & CURRY", name: "Chicken Curry", price: "$16", desc: "Curry with rice of Your Choice (Fried / Plain)" },
-    { category: "RICE & CURRY", name: "Nasi Goreng", price: "$16", desc: "Curry with rice of Your Choice (Fried / Plain)" },
+const OFFERS = [
+    {
+        id: "breakfast",
+        eyebrow: "MON–FRI · 7–10 AM",
+        title: "Breakfast Combo",
+        price: "$9.99",
+        description: "Bacon and egg roll with a small coffee.",
+        image:
+            "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=900&auto=format&fit=crop",
+        imageAlt: "Fresh breakfast pastries and fruit",
+        action: "Explore breakfast",
+        tone: "light",
+    },
+    {
+        id: "lunch",
+        eyebrow: "MON–FRI · 11 AM–2 PM",
+        title: "Office Lunch Special",
+        price: "From $15",
+        description: "A selected meal paired with any canned drink.",
+        image:
+            "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=900&auto=format&fit=crop",
+        imageAlt: "Freshly made cheeseburger",
+        action: "Explore lunch",
+        tone: "light",
+    },
+    {
+        id: "catering",
+        eyebrow: "MADE FOR A CROWD",
+        title: "Office Catering",
+        price: "From $15 pp",
+        description: "Sandwiches, wraps, pastries and coffee for the team.",
+        image:
+            "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=900&auto=format&fit=crop",
+        imageAlt: "Crispy golden chips served for sharing",
+        action: "Enquire about catering",
+        offer: "10% off catering orders",
+        tone: "dark",
+    },
+] as const;
 
-    { category: "NOODLES & DUMPLINGS", name: "Veg Noodles / Dumplings", price: "$15", desc: "Served with a side of housemade dumpling sauce" },
-    { category: "NOODLES & DUMPLINGS", name: "Chicken Noodles / Dumplings", price: "$17", desc: "Served with a side of housemade dumpling sauce" },
+function getItemImage(item: MenuItem, categoryName: string): string {
+    const key = (categoryName || "").toUpperCase().trim();
+    return item.image || CATEGORY_IMAGES[key] || DEFAULT_IMAGE;
+}
 
-    { category: "CLASSICS & SIDES", name: "GM Hot Wings", price: "$10", desc: "6pcs" },
-    { category: "CLASSICS & SIDES", name: "Peri Peri Wings", price: "$10", desc: "Delicious wings tossed in peri peri sauce" },
-    { category: "CLASSICS & SIDES", name: "Smoke BBQ Wings", price: "$10", desc: "Delicious wings tossed in BBQ sauce" },
-    { category: "CLASSICS & SIDES", name: "Bowl of Chips", price: "$8.5", desc: "Classic hot chips" },
-    { category: "CLASSICS & SIDES", name: "GM Loaded Fries", price: "$13", desc: "Crunchy fried chips tossed in Shallots, Shredded Cheese, topped with Bacon bits and GM house sauce" },
-    { category: "CLASSICS & SIDES", name: "Snitty and Chips", price: "$18", desc: "Crispy Golden Schnitzel served with a side of crunchy chips, mix salad and Garlic Aioli" },
-    { category: "CLASSICS & SIDES", name: "Fish and chips", price: "$18", desc: "Crispy golden battered fish served with crunchy chips, fresh garden salad & tartare sauce." },
-    { category: "CLASSICS & SIDES", name: "Seafood basket", price: "$20", desc: "Calamari, battered fish, served with a side of chips & garden salad" },
+function formatPrice(cents: number): string {
+    const amount = cents / 100;
+    return amount % 1 === 0 ? `$${amount}` : `$${amount.toFixed(2)}`;
+}
 
-    { category: "ADD-ONS", name: "Egg", price: "$4", desc: "" },
-    { category: "ADD-ONS", name: "Bacon", price: "$5", desc: "" },
-    { category: "ADD-ONS", name: "Smoked Salmon", price: "$5", desc: "" },
-    { category: "ADD-ONS", name: "Chorizo", price: "$5", desc: "" },
-    { category: "ADD-ONS", name: "Avocado", price: "$4", desc: "" },
-    { category: "ADD-ONS", name: "Hash Browns", price: "$4", desc: "" },
-    { category: "ADD-ONS", name: "Halloumi", price: "$5", desc: "" },
-    { category: "ADD-ONS", name: "Sautéed Mushrooms", price: "$4", desc: "" },
-    { category: "ADD-ONS", name: "Spinach/Kale", price: "$4", desc: "" },
-    { category: "ADD-ONS", name: "Feta Cheese", price: "$4", desc: "" },
-    { category: "ADD-ONS", name: "Cherry Tomatoes", price: "$4", desc: "" },
-    { category: "ADD-ONS", name: "Sauce", price: "$1", desc: "" },
-    { category: "ADD-ONS", name: "Cheese", price: "$1", desc: "" }
-];
+function ArrowIcon({ className = "" }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            className={className}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+        </svg>
+    );
+}
+
+function PromotionCard({
+    offer,
+}: {
+    offer: (typeof OFFERS)[number];
+}) {
+    const isDark = offer.tone === "dark";
+    const actionLabel = "offer" in offer ? offer.offer : offer.action;
+
+    return (
+        <Link
+            href="#contact"
+            aria-label={`${actionLabel}: ${offer.title}, ${offer.price}`}
+            className={[
+                "offer-card group relative isolate flex min-w-0 flex-col overflow-hidden rounded-[1.15rem]",
+                "border transition-[transform,box-shadow,border-color] duration-300 ease-out",
+                "motion-reduce:transition-none",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4",
+                isDark
+                    ? "border-espresso/15 bg-espresso text-cream hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(32,27,23,0.18)]"
+                    : "border-[#dfd2bf] bg-[#f8f2e8] text-espresso hover:-translate-y-1 hover:border-[#c9ad8a] hover:shadow-[0_18px_40px_rgba(67,48,31,0.10)]",
+            ].join(" ")}
+        >
+            <div className="relative h-36 overflow-hidden sm:h-[9rem] lg:h-[9rem]">
+                <Image
+                    src={offer.image}
+                    alt={offer.imageAlt}
+                    fill
+                    sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045] motion-reduce:transform-none"
+                />
+                <div
+                    aria-hidden="true"
+                    className={[
+                        "absolute inset-x-0 bottom-0 h-[40%]",
+                        isDark
+                            ? "bg-gradient-to-t from-espresso/80 to-transparent"
+                            : "bg-gradient-to-t from-[#f8f2e8]/70 to-transparent",
+                    ].join(" ")}
+                />
+                <span
+                    className={[
+                        "absolute left-4 top-4 inline-flex max-w-[calc(100%-2rem)] items-center rounded-full px-3 py-1.5",
+                        "text-[0.62rem] font-semibold uppercase tracking-[0.13em] backdrop-blur-md",
+                        isDark
+                            ? "bg-amber-400 text-espresso"
+                            : "bg-espresso/85 text-white",
+                    ].join(" ")}
+                >
+                    {offer.eyebrow}
+                </span>
+            </div>
+
+            <div className="flex flex-1 flex-col p-4 sm:p-[1.15rem]">
+                <div className="flex items-start justify-between gap-3">
+                    <h3
+                        className={[
+                            "min-w-0 font-serif text-[1.18rem] leading-tight tracking-[-0.025em] sm:text-[1.22rem]",
+                            isDark ? "text-cream" : "text-espresso",
+                        ].join(" ")}
+                    >
+                        {offer.title}
+                    </h3>
+                    <span
+                        className={[
+                            "shrink-0 pt-0.5 font-serif text-[1rem] font-semibold tracking-[-0.025em]",
+                            isDark ? "text-amber-300" : "text-[#a64c22]",
+                        ].join(" ")}
+                    >
+                        {offer.price}
+                    </span>
+                </div>
+
+                <p
+                    className={[
+                        "mt-2 text-[0.78rem] leading-[1.55]",
+                        isDark ? "text-cream/75" : "text-[#766b5d]",
+                    ].join(" ")}
+                >
+                    {offer.description}
+                </p>
+
+                <div className="mt-4 flex min-h-8 items-center justify-between gap-3">
+                    <span
+                        className={[
+                            "text-[0.64rem] font-semibold uppercase tracking-[0.12em]",
+                            isDark ? "text-amber-300" : "text-[#a64c22]",
+                        ].join(" ")}
+                    >
+                        {actionLabel}
+                    </span>
+                    <span
+                        aria-hidden="true"
+                        className={[
+                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-300",
+                            "group-hover:translate-x-0.5",
+                            isDark
+                                ? "bg-amber-400/15 text-amber-300 group-hover:bg-amber-400 group-hover:text-espresso"
+                                : "bg-[#ead9bf] text-[#8d451f] group-hover:bg-[#a64c22] group-hover:text-white",
+                        ].join(" ")}
+                    >
+                        <ArrowIcon className="h-4 w-4" />
+                    </span>
+                </div>
+            </div>
+        </Link>
+    );
+}
+
+function MenuItemCard({
+    item,
+    categoryName,
+    quantity,
+    added,
+    onAdd,
+    onDecrease,
+}: {
+    item: MenuItem;
+    categoryName: string;
+    quantity: number;
+    added: boolean;
+    onAdd: () => void;
+    onDecrease: () => void;
+}) {
+    const total = formatPrice(item.price * quantity);
+
+    return (
+        <article className="menu-card group flex min-w-0 flex-col rounded-2xl border border-transparent p-2.5 transition-[border-color,background-color,box-shadow] duration-300 hover:border-border hover:bg-surface/60 hover:shadow-[0_10px_28px_rgba(32,27,23,0.045)] sm:p-3">
+            <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl bg-bone">
+                <Image
+                    src={getItemImage(item, categoryName)}
+                    alt={item.name}
+                    fill
+                    sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045] motion-reduce:transform-none"
+                />
+
+                {quantity > 0 && (
+                    <span className="absolute left-3 top-3 inline-flex items-center rounded-full border border-white/20 bg-espresso/90 px-3 py-1.5 text-[0.68rem] font-semibold text-white shadow-sm backdrop-blur-sm">
+                        {quantity} in order
+                    </span>
+                )}
+
+                {item.isSpecial && (
+                    <span className="absolute right-3 top-3 rounded-full bg-[#a64c22] px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-white shadow-sm">
+                        Chef&apos;s special
+                    </span>
+                )}
+            </div>
+
+            <div className="flex flex-1 flex-col px-1 pb-1">
+                <div className="flex items-start justify-between gap-3">
+                    <h4 className="min-w-0 font-serif text-[1.2rem] leading-[1.12] tracking-[-0.025em] text-text">
+                        {item.name}
+                    </h4>
+                    <span className="shrink-0 pt-0.5 text-sm font-semibold tabular-nums text-accent">
+                        {formatPrice(item.price)}
+                    </span>
+                </div>
+
+                {item.description ? (
+                    <p className="mt-2 line-clamp-2 min-h-[2.65rem] text-[0.82rem] leading-[1.6] text-text-muted">
+                        {item.description}
+                    </p>
+                ) : (
+                    <div className="min-h-[2.65rem]" />
+                )}
+
+                <div className="mt-auto pt-4">
+                    {quantity === 0 ? (
+                        <button
+                            type="button"
+                            onClick={onAdd}
+                            className={[
+                                "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5",
+                                "text-[0.7rem] font-semibold uppercase tracking-[0.12em] transition-colors duration-200",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+                                added
+                                    ? "border-[#426a4a] bg-[#426a4a] text-white"
+                                    : "border-[#c8a77e] bg-transparent text-text hover:border-accent hover:bg-accent hover:text-white",
+                            ].join(" ")}
+                        >
+                            {added ? (
+                                <>
+                                    <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                                        <path d="m5 12 4 4L19 6" />
+                                    </svg>
+                                    Added
+                                </>
+                            ) : (
+                                <>
+                                    <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    Add to order
+                                </>
+                            )}
+                        </button>
+                    ) : (
+                        <div
+                            className="flex min-h-11 items-center justify-between gap-2 rounded-full border border-[#d8c2a5] bg-[#f6ecdd] p-1"
+                            aria-label={`${item.name}, quantity ${quantity}, total ${total}`}
+                        >
+                            <button
+                                type="button"
+                                onClick={onDecrease}
+                                aria-label={`Remove one ${item.name}`}
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-lg text-espresso shadow-sm transition-colors hover:bg-[#ead9bf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            >
+                                <span aria-hidden="true">−</span>
+                            </button>
+                            <span className="flex min-w-0 flex-col items-center leading-tight">
+                                <span className="text-xs font-semibold text-espresso">
+                                    {quantity} in order
+                                </span>
+                                <span className="mt-0.5 text-[0.7rem] tabular-nums text-[#8d451f]">
+                                    {total}
+                                </span>
+                            </span>
+                            <button
+                                type="button"
+                                onClick={onAdd}
+                                aria-label={`Add another ${item.name}`}
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-espresso text-lg text-white transition-colors hover:bg-[#a64c22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                            >
+                                <span aria-hidden="true">+</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </article>
+    );
+}
 
 export default function Menu() {
     const sectionRef = useRef<HTMLElement>(null);
-    const [activeTab, setActiveTab] = useState("BURGERS");
+    const { addItem, updateQuantity, getItemQuantity } = useCart();
+
+    const [categories, setCategories] = useState<MenuCategory[]>([]);
+    const [activeTab, setActiveTab] = useState("");
+    const [dataSource, setDataSource] = useState<"loading" | "server" | "fallback">("loading");
+    const [loadError, setLoadError] = useState(false);
+    const [addedId, setAddedId] = useState<string | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadMenu() {
+            try {
+                const result = await fetchMenu();
+                if (cancelled) return;
+
+                const nextCategories = result.categories ?? [];
+                setCategories(nextCategories);
+                setDataSource(result.source);
+                setLoadError(false);
+                setActiveTab((current) =>
+                    nextCategories.some((category) => category.name === current)
+                        ? current
+                        : nextCategories[0]?.name ?? "",
+                );
+            } catch {
+                if (cancelled) return;
+                setCategories([]);
+                setDataSource("fallback");
+                setLoadError(true);
+            }
+        }
+
+        void loadMenu();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     useGSAP(
         () => {
             const root = sectionRef.current;
-            if (!root) return;
-            const q = gsap.utils.selector(root);
-            
-            gsap.fromTo(
-                q(".menu-card"),
-                { y: 30, autoAlpha: 0 },
-                {
-                    y: 0,
-                    autoAlpha: 1,
-                    duration: 0.8,
-                    stagger: 0.05,
-                    ease: "power3.out",
-                    scrollTrigger: {
-                        trigger: q(".menu-grid"),
-                        start: "top 80%",
-                        once: true,
-                    },
-                }
-            );
+            if (!root || dataSource === "loading") return;
 
-            gsap.fromTo(
-                q(".offer-card"),
-                { y: 40, autoAlpha: 0 },
-                {
-                    y: 0,
-                    autoAlpha: 1,
-                    duration: 0.8,
-                    stagger: 0.15,
-                    ease: "power3.out",
-                    scrollTrigger: {
-                        trigger: q(".offer-card"),
-                        start: "top 85%",
-                        once: true,
-                    },
+            const media = gsap.matchMedia();
+
+            media.add("(prefers-reduced-motion: no-preference)", () => {
+                const offerCards = root.querySelectorAll<HTMLElement>(".offer-card");
+                const menuCards = root.querySelectorAll<HTMLElement>(".menu-card");
+
+                if (offerCards.length) {
+                    gsap.fromTo(
+                        offerCards,
+                        { y: 18, autoAlpha: 0 },
+                        {
+                            y: 0,
+                            autoAlpha: 1,
+                            duration: 0.65,
+                            stagger: 0.09,
+                            ease: "power2.out",
+                            scrollTrigger: {
+                                trigger: offerCards[0],
+                                start: "top 88%",
+                                once: true,
+                            },
+                        },
+                    );
                 }
-            );
+
+                if (menuCards.length) {
+                    gsap.fromTo(
+                        menuCards,
+                        { y: 16, autoAlpha: 0 },
+                        {
+                            y: 0,
+                            autoAlpha: 1,
+                            duration: 0.45,
+                            stagger: 0.035,
+                            ease: "power2.out",
+                            scrollTrigger: {
+                                trigger: menuCards[0],
+                                start: "top 92%",
+                                once: true,
+                            },
+                        },
+                    );
+                }
+            });
+
+            return () => media.revert();
         },
-        { scope: sectionRef }
+        { scope: sectionRef, dependencies: [categories, activeTab, dataSource], revertOnUpdate: true },
     );
 
-    const filteredMenu = MENU_DATA.filter(item => item.category === activeTab);
+    const handleAddToCart = useCallback(
+        (item: MenuItem, categoryName: string) => {
+            addItem({
+                menuItemId: item.id,
+                name: item.name,
+                price: item.price,
+                notes: "",
+                image: getItemImage(item, categoryName),
+                categoryName,
+            });
+            setAddedId(item.id);
+            window.setTimeout(() => {
+                setAddedId((current) => (current === item.id ? null : current));
+            }, 1200);
+        },
+        [addItem],
+    );
+
+    const activeCategory = categories.find((category) => category.name === activeTab);
+    const filteredItems = activeCategory?.items ?? [];
 
     return (
-        <section ref={sectionRef} id="menu" className="relative w-full bg-background pt-16 sm:pt-20 lg:pt-24 overflow-hidden">
+        <section
+            ref={sectionRef}
+            id="menu"
+            aria-labelledby="menu-heading"
+            className="relative w-full overflow-hidden bg-background pt-16 sm:pt-20 lg:pt-24"
+        >
             <div className="content-container relative z-10">
-                {/* Compact Header */}
-                <div className="flex flex-col gap-4 mb-12 sm:mb-16">
+                <header className="mb-9 flex flex-col gap-4 sm:mb-12 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <p className="label-mini text-accent mb-3">Our Menu</p>
-                        <h2 className="font-serif text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.95] tracking-[-0.03em] text-text">
+                        <p className="label-mini mb-3 font-semibold uppercase tracking-[0.2em] text-accent">
+                            From our kitchen
+                        </p>
+                        <h2
+                            id="menu-heading"
+                            className="max-w-[720px] font-serif text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.045em] text-text"
+                        >
                             Good food, all day.
                         </h2>
                     </div>
-                    <p className="font-sans text-[15px] leading-[1.6] text-text-muted max-w-[440px]">
-                        From breakfast and coffee to burgers, curries, pasta, momo and more. Made here, enjoyed slowly.
+                    <p className="max-w-[450px] text-[0.94rem] leading-[1.75] text-text-muted">
+                        From breakfast and artisan coffee to burgers, curries, pasta, momo
+                        and loaded chips. Made fresh, just the way a good café should.
                     </p>
-                </div>
+                </header>
             </div>
 
-            {/* Premium Office Offers Strip */}
-            <div className="content-container relative z-10 mt-12 sm:mt-16 mb-12 sm:mb-16">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* Offer 1 — Breakfast Combo */}
-                    <a href="#contact" className="offer-card invisible group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f5e6d3] to-[#ede0d0] transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
-                        <div className="relative h-40 sm:h-36 overflow-hidden">
-                            <Image
-                                src="https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=600&auto=format&fit=crop"
-                                alt="Breakfast combo — bacon eggs roll and coffee"
-                                fill
-                                sizes="(max-width: 768px) 100vw, 33vw"
-                                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#f5e6d3] via-transparent to-transparent" />
-                            <span className="absolute top-3 left-4 label-micro text-white bg-accent/80 backdrop-blur-sm px-2.5 py-1 rounded-full">Mon-Fri 7am-10am</span>
-                        </div>
-                        <div className="relative p-5">
-                            <div className="flex items-baseline justify-between mb-1.5">
-                                <h4 className="font-serif text-[1.15rem] leading-tight text-text">
-                                    Breakfast Combo
-                                </h4>
-                                <span className="font-serif text-xl text-accent">$9.99</span>
-                            </div>
-                            <p className="font-sans text-[12px] leading-[1.5] text-text-muted">
-                                Bacon and Eggs Roll + Small Coffee
-                            </p>
-                            <div className="mt-3 flex items-center justify-between">
-                                <span className="label-micro text-accent opacity-0 transition-opacity group-hover:opacity-100">Order Now</span>
-                                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 text-accent transition-all group-hover:bg-accent group-hover:text-white">
-                                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                                </span>
-                            </div>
-                        </div>
-                    </a>
-
-                    {/* Offer 2 — Lunch Deal */}
-                    <a href="#contact" className="offer-card invisible group relative overflow-hidden rounded-2xl bg-gradient-to-br from-bone to-white transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
-                        <div className="relative h-40 sm:h-36 overflow-hidden">
-                            <Image
-                                src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop"
-                                alt="Lunch deal — burger and chips"
-                                fill
-                                sizes="(max-width: 768px) 100vw, 33vw"
-                                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-bone via-transparent to-transparent" />
-                            <span className="absolute top-3 left-4 label-micro text-white bg-accent/80 backdrop-blur-sm px-2.5 py-1 rounded-full">Mon-Fri 11am-2pm</span>
-                        </div>
-                        <div className="relative p-5">
-                            <div className="flex items-baseline justify-between mb-1.5">
-                                <h4 className="font-serif text-[1.15rem] leading-tight text-text">
-                                    Office Lunch Special
-                                </h4>
-                                <span className="font-serif text-[1rem] text-accent mt-1">From $15</span>
-                            </div>
-                            <p className="font-sans text-[12px] leading-[1.5] text-text-muted">
-                                Choice of Selected Meal + Any Can Drink
-                            </p>
-                            <div className="mt-3 flex items-center justify-between">
-                                <span className="label-micro text-accent opacity-0 transition-opacity group-hover:opacity-100">View Deal</span>
-                                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 text-accent transition-all group-hover:bg-accent group-hover:text-white">
-                                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                                </span>
-                            </div>
-                        </div>
-                    </a>
-
-                    {/* Offer 3 — Office Catering */}
-                    <a href="#contact" className="offer-card invisible group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2a2320] to-[#1a1614] transition-all duration-500 hover:shadow-lg hover:-translate-y-0.5">
-                        <div className="relative h-40 sm:h-36 overflow-hidden">
-                            <Image
-                                src="https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=600&auto=format&fit=crop"
-                                alt="Office catering — sandwiches wraps and pastries spread"
-                                fill
-                                sizes="(max-width: 768px) 100vw, 33vw"
-                                className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#1a1614] via-[#1a1614]/30 to-transparent" />
-                            <span className="absolute top-3 left-4 label-micro text-white bg-accent/80 backdrop-blur-sm px-2.5 py-1 rounded-full">Pre-order</span>
-                        </div>
-                        <div className="relative p-5">
-                            <div className="flex items-baseline justify-between mb-1.5">
-                                <h4 className="font-serif text-[1.15rem] leading-tight text-white">
-                                    Office Catering
-                                </h4>
-                                <span className="font-serif text-[1rem] text-accent mt-1">From $15 pp</span>
-                            </div>
-                            <p className="font-sans text-[12px] leading-[1.5] text-white/80">
-                                Sandwiches · Wraps · Pastries · Coffee
-                            </p>
-                            <div className="mt-3 flex items-center justify-between">
-                                <span className="label-micro text-white/70">10% Off All Catering Orders</span>
-                                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/20 text-accent transition-all group-hover:bg-accent group-hover:text-white">
-                                    <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                                </span>
-                            </div>
-                        </div>
-                    </a>
+            <div className="content-container relative z-10 mb-12 sm:mb-14 lg:mb-16">
+                <div className="mb-4 flex items-center justify-between gap-4">
+                    <p className="label-mini font-semibold uppercase tracking-[0.16em] text-text-muted">
+                        Worth making time for
+                    </p>
+                    <span className="hidden text-xs text-text-muted sm:block">
+                        A little something for every part of the day
+                    </span>
                 </div>
-            </div>
-
-            {/* Category Tabs — Pill shaped */}
-            <div className="relative z-10">
-                <div className="content-container">
-                    <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar py-2">
-                        {MENU_CATEGORIES.map((cat) => (
-                            <button
-                                key={cat}
-                                onClick={() => setActiveTab(cat)}
-                                className={`label-micro whitespace-nowrap px-6 py-2.5 rounded-full transition-all duration-300 ${
-                                    activeTab === cat
-                                        ? "bg-accent text-[#1a1512] shadow-md font-bold border border-accent"
-                                        : "bg-transparent text-text-muted hover:text-accent border border-transparent"
-                                }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* Grid Area */}
-            <div className="content-container mt-16 relative z-10">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
-                    <div>
-                        <h3 className="font-serif text-[2.5rem] sm:text-[3rem] leading-none tracking-[-0.02em] text-text mb-3">
-                            {activeTab}
-                        </h3>
-                        <p className="font-sans text-[15px] text-text-muted">
-                            Fresh ingredients, bold flavours, and all your favourites.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="menu-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16">
-                    {filteredMenu.map((item, idx) => (
-                        <div key={`${item.name}-${idx}`} className="menu-card invisible group cursor-pointer">
-                            <div className="relative aspect-[4/3] w-full overflow-hidden bg-bone mb-5">
-                                <Image
-                                    src={getPlaceholderImage(item.category)}
-                                    alt={item.name}
-                                    fill
-                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                    className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                                />
-                                {item.special && (
-                                    <span className="absolute top-3 right-3 label-micro text-white bg-accent/80 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                                        Special
-                                    </span>
-                                )}
-                            </div>
-                            <div className="flex items-baseline justify-between gap-4 mb-2">
-                                <h4 className="font-serif text-[1.35rem] leading-[1.1] tracking-[-0.01em] text-text">
-                                    {item.name}
-                                </h4>
-                                <span className="font-sans text-[13px] font-medium text-text shrink-0">
-                                    {item.price}
-                                </span>
-                            </div>
-                            {item.desc && (
-                                <p className="font-sans text-[13px] leading-[1.6] text-text-muted">
-                                    {item.desc}
-                                </p>
-                            )}
-                        </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {OFFERS.map((offer) => (
+                        <PromotionCard key={offer.id} offer={offer} />
                     ))}
                 </div>
             </div>
 
-            {/* Bottom Bar: consistent with other sections */}
-            <div className="mt-16 sm:mt-20 pb-16 sm:pb-20 relative z-10">
-                <GMDivider 
-                    leftText="Golden Moment" 
-                    rightText="Canberra · ACT" 
-                />
+            <div className="sticky top-[72px] z-30 border-y border-border bg-background/95 py-3 shadow-[0_4px_16px_rgba(32,27,23,0.035)] backdrop-blur-xl sm:top-[88px]">
+                <div className="content-container">
+                    {dataSource === "loading" ? (
+                        <div className="flex gap-2 overflow-hidden py-1" aria-label="Loading menu categories">
+                            {[1, 2, 3, 4].map((item) => (
+                                <div key={item} className="h-10 w-28 shrink-0 animate-pulse rounded-full bg-bone" />
+                            ))}
+                        </div>
+                    ) : categories.length > 0 ? (
+                        <div
+                            role="tablist"
+                            aria-label="Menu categories"
+                            className="hide-scrollbar flex items-center gap-2 overflow-x-auto py-1"
+                        >
+                            {categories.map((category) => {
+                                const selected = activeTab === category.name;
+                                const tabId = `menu-tab-${category.id}`;
+                                const panelId = `menu-panel-${category.id}`;
+
+                                return (
+                                    <button
+                                        key={category.id}
+                                        id={tabId}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={selected}
+                                        aria-controls={panelId}
+                                        tabIndex={selected ? 0 : -1}
+                                        onClick={() => setActiveTab(category.name)}
+                                        className={[
+                                            "inline-flex min-h-10 shrink-0 items-center gap-2.5 rounded-full border px-4 py-2",
+                                            "text-[0.68rem] font-semibold uppercase tracking-[0.1em] transition-colors duration-200",
+                                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
+                                            selected
+                                                ? "border-espresso bg-espresso text-cream"
+                                                : "border-border bg-surface-elevated text-text-muted hover:border-[#c8a77e] hover:text-text",
+                                        ].join(" ")}
+                                    >
+                                        <span>{category.name}</span>
+                                        <span
+                                            className={[
+                                                "min-w-5 rounded-full px-1.5 py-0.5 text-center text-[0.62rem] tabular-nums",
+                                                selected ? "bg-white/15 text-white" : "bg-bone text-text-muted",
+                                            ].join(" ")}
+                                        >
+                                            {category.items?.length ?? 0}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <p className="py-2 text-sm text-text-muted">
+                            Menu categories are temporarily unavailable.
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            <div className="content-container relative z-10 mt-10 sm:mt-12">
+                <div className="mb-7 flex flex-col gap-3 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p className="label-mini mb-2 font-semibold uppercase tracking-[0.16em] text-accent">
+                            Explore the menu
+                        </p>
+                        <h3 className="font-serif text-[2.35rem] leading-none tracking-[-0.035em] text-text sm:text-[2.8rem]">
+                            {activeTab || (dataSource === "loading" ? "Preparing the menu" : "Menu")}
+                        </h3>
+                        <p className="mt-3 max-w-[520px] text-sm leading-relaxed text-text-muted">
+                            Thoughtful ingredients, familiar favourites, and something new to discover.
+                        </p>
+                    </div>
+                    {activeCategory && (
+                        <p className="text-xs font-medium uppercase tracking-[0.12em] text-text-muted">
+                            {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}
+                        </p>
+                    )}
+                </div>
+
+                {dataSource === "loading" ? (
+                    <div className="grid grid-cols-1 gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-4" aria-label="Loading menu items">
+                        {Array.from({ length: 8 }, (_, index) => (
+                            <div key={index} className="animate-pulse">
+                                <div className="mb-4 aspect-[4/3] rounded-xl bg-bone" />
+                                <div className="mb-3 h-5 w-3/4 rounded bg-bone" />
+                                <div className="mb-2 h-3 w-full rounded bg-bone" />
+                                <div className="h-3 w-2/3 rounded bg-bone" />
+                            </div>
+                        ))}
+                    </div>
+                ) : loadError ? (
+                    <div className="rounded-2xl border border-border bg-surface p-8 text-center">
+                        <h4 className="font-serif text-2xl text-text">We couldn’t load the menu.</h4>
+                        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-text-muted">
+                            Please try again in a moment, or contact the café and we’ll be happy to help.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setLoadError(false);
+                                setDataSource("loading");
+                                void fetchMenu()
+                                    .then((result) => {
+                                        setCategories(result.categories ?? []);
+                                        setDataSource(result.source);
+                                        setActiveTab(result.categories?.[0]?.name ?? "");
+                                    })
+                                    .catch(() => {
+                                        setLoadError(true);
+                                        setDataSource("fallback");
+                                    });
+                            }}
+                            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-espresso px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-cream transition-colors hover:bg-[#a64c22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                        >
+                            Try again
+                        </button>
+                    </div>
+                ) : filteredItems.length > 0 ? (
+                    <div
+                        id={activeCategory ? `menu-panel-${activeCategory.id}` : "menu-panel"}
+                        role="tabpanel"
+                        aria-labelledby={activeCategory ? `menu-tab-${activeCategory.id}` : undefined}
+                        className="menu-grid grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-4"
+                    >
+                        {filteredItems.map((item) => {
+                            const quantity = getItemQuantity(item.id);
+                            return (
+                                <MenuItemCard
+                                    key={item.id}
+                                    item={item}
+                                    categoryName={activeTab}
+                                    quantity={quantity}
+                                    added={addedId === item.id}
+                                    onAdd={() => handleAddToCart(item, activeTab)}
+                                    onDecrease={() => updateQuantity(item.id, quantity - 1)}
+                                />
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center">
+                        <h4 className="font-serif text-2xl text-text">Nothing on this menu just yet.</h4>
+                        <p className="mt-2 text-sm text-text-muted">
+                            Please check another category or ask our team about today’s specials.
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            <div className="relative z-10 mt-16 pb-16 sm:mt-20 sm:pb-20">
+                <GMDivider leftText="Golden Moment" rightText="Canberra · ACT" />
             </div>
         </section>
     );

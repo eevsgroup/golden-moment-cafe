@@ -4,6 +4,8 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { HOURS } from "@/lib/data/hours";
+import { CONTACT } from "@/lib/data/contact";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -44,6 +46,16 @@ export default function Contact() {
         },
         { scope: sectionRef }
     );
+
+    /** Compact display: group Sat + Sun into one row */
+    const displayHours = (() => {
+        const weekdays = HOURS.filter(h => h.day !== "Saturday" && h.day !== "Sunday");
+        const sat = HOURS.find(h => h.day === "Saturday")!;
+        return [
+            ...weekdays.map(h => ({ label: h.day, value: `${h.displayOpen} – ${h.displayClose}` })),
+            { label: "Sat – Sun", value: `${sat.displayOpen} – ${sat.displayClose}` },
+        ];
+    })();
 
     return (
         <section
@@ -96,7 +108,7 @@ export default function Contact() {
                             </div>
                             
                             <a
-                                href="#"
+                                href={CONTACT.googleReviewUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="group relative inline-flex w-max items-center justify-center overflow-hidden rounded-full border border-border px-6 py-2.5 transition-all duration-500 hover:border-transparent hover:shadow-lg"
@@ -124,12 +136,12 @@ export default function Contact() {
                                     <span className="font-sans text-[12px] uppercase tracking-[0.15em] font-semibold text-accent">Location</span>
                                 </div>
                                 <p className="font-sans text-[14px] leading-[1.7] text-text mb-4">
-                                    Shop 4/14 Moore St<br />
-                                    Canberra ACT 2601<br />
+                                    {CONTACT.address.street}<br />
+                                    {CONTACT.address.locality} {CONTACT.address.region} {CONTACT.address.postalCode}<br />
                                     Australia
                                 </p>
                                 <a
-                                    href="https://www.google.com/maps/dir//Shop+4%2F14+Moore+St,+Canberra+ACT+2601,+Australia"
+                                    href={CONTACT.googleMapsDirections}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="group inline-flex items-center gap-1.5 font-sans text-[13px] font-semibold text-accent hover:text-accent/80 transition-colors"
@@ -153,12 +165,12 @@ export default function Contact() {
                                     <span className="font-sans text-[12px] uppercase tracking-[0.15em] font-semibold text-accent">Hours</span>
                                 </div>
                                 <ul className="font-sans text-[13px] leading-[1.5] text-text flex flex-col gap-1.5">
-                                    <li className="flex justify-between gap-4"><span className="font-medium">Monday</span> <span className="text-text-muted">7:00 AM – 2:30 PM</span></li>
-                                    <li className="flex justify-between gap-4"><span className="font-medium">Tuesday</span> <span className="text-text-muted">6:00 AM – 4:00 PM</span></li>
-                                    <li className="flex justify-between gap-4"><span className="font-medium">Wednesday</span> <span className="text-text-muted">6:00 AM – 4:30 PM</span></li>
-                                    <li className="flex justify-between gap-4"><span className="font-medium">Thursday</span> <span className="text-text-muted">6:00 AM – 6:00 PM</span></li>
-                                    <li className="flex justify-between gap-4"><span className="font-medium">Friday</span> <span className="text-text-muted">6:00 AM – 4:30 PM</span></li>
-                                    <li className="flex justify-between gap-4"><span className="font-medium">Sat – Sun</span> <span className="text-text-muted">7:00 AM – 3:00 PM</span></li>
+                                    {displayHours.map((h) => (
+                                        <li key={h.label} className="flex justify-between gap-4">
+                                            <span className="font-medium">{h.label}</span>
+                                            <span className="text-text-muted">{h.value}</span>
+                                        </li>
+                                    ))}
                                 </ul>
                             </div>
 
@@ -172,10 +184,10 @@ export default function Contact() {
                                 <div>
                                     <span className="font-sans text-[11px] uppercase tracking-[0.15em] text-text-muted block mb-0.5">Call us</span>
                                     <a
-                                        href="tel:+61433056145"
+                                        href={`tel:${CONTACT.phone}`}
                                         className="font-serif text-[1.1rem] text-text hover:text-accent transition-colors"
                                     >
-                                        +61 433 056 145
+                                        {CONTACT.phoneDisplay}
                                     </a>
                                 </div>
                             </div>
@@ -190,7 +202,7 @@ export default function Contact() {
                                 <div className="flex flex-col gap-1.5">
                                     <span className="font-sans text-[11px] uppercase tracking-[0.15em] text-text-muted">WhatsApp us</span>
                                     <a
-                                        href="https://wa.me/61433056145"
+                                        href={CONTACT.whatsappUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="group inline-flex items-center gap-2 rounded-full bg-[#25D366] text-white px-4 py-1.5 transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-sm w-max"
@@ -208,7 +220,7 @@ export default function Contact() {
                     {/* Right Column: Map */}
                     <div className="contact-anim invisible relative w-full h-[350px] lg:h-full lg:min-h-[480px] rounded-3xl overflow-hidden bg-bone shadow-md border border-border">
                         <iframe
-                            src="https://maps.google.com/maps?q=Shop%204%2F14%20Moore%20St%2C%20Canberra%20ACT%202601%2C%20Australia&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                            src={CONTACT.googleMapsEmbed}
                             width="100%"
                             height="100%"
                             style={{ border: 0 }}

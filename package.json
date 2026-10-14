@@ -3,8 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm -r run dev",
-    "build": "pnpm -r run build",
-    "start": "pnpm -r run start"
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm --filter @golden-moment/contracts run build && pnpm -r run build",
+    "build:contracts": "pnpm --filter @golden-moment/contracts run build",
+    "start": "pnpm -r --parallel run start",
+    "dev:client": "pnpm --filter client run dev",
+    "dev:server": "pnpm --filter server run dev",
+    "build:client": "pnpm --filter client run build",
+    "build:server": "pnpm --filter server run build",
+    "db:generate": "pnpm --filter server run db:generate",
+    "db:push": "pnpm --filter server run db:push",
+    "db:studio": "pnpm --filter server run db:studio"
   }
 }

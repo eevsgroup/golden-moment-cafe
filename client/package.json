@@ -1,5 +1,5 @@
 {
-  "name": "golden-moment-cafe",
+  "name": "client",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -12,6 +12,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@golden-moment/contracts": "workspace:*",
     "@gsap/react": "^2.1.2",
     "@phosphor-icons/react": "^2.1.10",
     "@vercel/analytics": "^2.0.1",

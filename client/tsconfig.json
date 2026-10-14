@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@golden-moment/contracts": [
+        "../packages/contracts/src/index.ts"
       ]
     }
   },

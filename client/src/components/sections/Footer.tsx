@@ -1,7 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
+import { CONTACT } from "@/lib/data/contact";
+import { FOOTER_EXPLORE, FOOTER_MENU } from "@/lib/data/navigation";
+import { HOURS_SUMMARY } from "@/lib/data/hours";
 
 export default function Footer() {
     return (
@@ -26,7 +27,7 @@ export default function Footer() {
                         <div className="flex items-center gap-5">
                             <div className="relative w-16 h-16 rounded-full overflow-hidden border border-[#d2a373]/30 shadow-lg flex-shrink-0">
                                 <Image
-                                    src="/logo/Logo _cafe.jpeg"
+                                    src="/logo/logo-cafe.jpeg"
                                     alt="Golden Moment Logo"
                                     fill
                                     sizes="64px"
@@ -37,8 +38,8 @@ export default function Footer() {
                                 <h2 className="font-serif text-[18px] sm:text-[20px] leading-none text-[#d2a373] tracking-[0.15em] uppercase">
                                     Golden Moment
                                 </h2>
-                                <p className="font-sans text-[10px] sm:text-[11px] text-[#d2a373]/80 mt-2 uppercase tracking-[0.25em]">
-                                    Café & Restaurant
+                                <p className="font-sans text-[12px] sm:text-[11px] text-[#d2a373]/80 mt-2 uppercase tracking-[0.25em]">
+                                    Café &amp; Restaurant
                                 </p>
                             </div>
                         </div>
@@ -46,7 +47,7 @@ export default function Footer() {
                         {/* CTA Text */}
                         <div className="mt-2">
                             <div className="flex items-center gap-4 mb-6">
-                                <span className="font-sans text-[11px] text-[#d2a373] uppercase tracking-[0.15em]">
+                                <span className="font-sans text-[12px] text-[#d2a373] uppercase tracking-[0.15em]">
                                     Dine with us
                                 </span>
                                 <span className="w-8 h-px bg-[#d2a373]/50" />
@@ -69,10 +70,10 @@ export default function Footer() {
                                 Explore
                             </h4>
                             <ul className="flex flex-col gap-4">
-                                {['Home', 'About Us', 'Menu', 'Gallery', 'Reviews', 'Contact'].map((item) => (
-                                    <li key={item}>
-                                        <a href="#" className="font-sans text-[14px] text-white/80 hover:text-[#d2a373] transition-colors">
-                                            {item}
+                                {FOOTER_EXPLORE.map((item) => (
+                                    <li key={item.label}>
+                                        <a href={item.href} className="font-sans text-[14px] text-white/80 hover:text-[#d2a373] transition-colors">
+                                            {item.label}
                                         </a>
                                     </li>
                                 ))}
@@ -85,10 +86,10 @@ export default function Footer() {
                                 Our Menu
                             </h4>
                             <ul className="flex flex-col gap-4">
-                                {['Coffee', 'Breakfast', 'Lunch', 'Dinner', 'Desserts', 'Beverages'].map((item) => (
-                                    <li key={item}>
-                                        <a href="#" className="font-sans text-[14px] text-white/80 hover:text-[#d2a373] transition-colors">
-                                            {item}
+                                {FOOTER_MENU.map((item) => (
+                                    <li key={item.label}>
+                                        <a href={item.href} className="font-sans text-[14px] text-white/80 hover:text-[#d2a373] transition-colors">
+                                            {item.label}
                                         </a>
                                     </li>
                                 ))}
@@ -110,8 +111,8 @@ export default function Footer() {
                                     </h4>
                                 </div>
                                 <p className="font-sans text-[14px] leading-[1.8] text-white/80 pl-7">
-                                    Shop 4/14 Moore St,<br />
-                                    Canberra ACT 2601
+                                    {CONTACT.address.street},<br />
+                                    {CONTACT.address.locality} {CONTACT.address.region} {CONTACT.address.postalCode}
                                 </p>
                             </div>
 
@@ -127,7 +128,7 @@ export default function Footer() {
                                     </h4>
                                 </div>
                                 <p className="font-sans text-[14px] leading-[1.8] text-white/80 pl-7">
-                                    7:00 AM – 4:00 PM
+                                    {HOURS_SUMMARY}
                                 </p>
                             </div>
 
@@ -137,16 +138,16 @@ export default function Footer() {
                                 className="group flex items-center justify-center gap-3 bg-[#d2a373] text-[#110e0c] self-start rounded-full py-3.5 px-6 transition-transform hover:scale-[1.02] active:scale-[0.98]"
                             >
                                 <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.15em]">Book A Table</span>
-                                <svg 
-                                    className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" 
-                                    viewBox="0 0 24 24" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
+                                <svg
+                                    className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
                                     strokeLinejoin="round"
                                 >
-                                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
                                 </svg>
                             </Link>
 
@@ -161,7 +162,7 @@ export default function Footer() {
                     <div className="flex items-center gap-4">
                         <div className="relative w-12 h-12 rounded-full overflow-hidden border border-[#d2a373]/30">
                             <Image
-                                src="/logo/Logo _cafe.jpeg"
+                                src="/logo/logo-cafe.jpeg"
                                 alt="Golden Moment Logo"
                                 fill
                                 sizes="48px"
@@ -172,8 +173,8 @@ export default function Footer() {
                             <h2 className="font-serif text-[14px] leading-none text-[#d2a373] tracking-[0.15em] uppercase">
                                 Golden Moment
                             </h2>
-                            <p className="font-sans text-[8px] text-[#d2a373]/80 mt-1.5 uppercase tracking-[0.25em]">
-                                Café & Restaurant
+                            <p className="font-sans text-[10px] text-[#d2a373]/80 mt-1.5 uppercase tracking-[0.25em]">
+                                Café &amp; Restaurant
                             </p>
                         </div>
                     </div>
@@ -195,7 +196,7 @@ export default function Footer() {
                         {/* Social Icons */}
                         <div className="flex gap-4">
                             {/* Instagram */}
-                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 hover:border-[#d2a373] hover:text-[#d2a373] transition-all">
+                            <a href={CONTACT.social.instagram} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 hover:border-[#d2a373] hover:text-[#d2a373] transition-all">
                                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                     <rect x="2" y="2" width="20" height="20" rx="5" />
                                     <circle cx="12" cy="12" r="5" />
@@ -203,13 +204,13 @@ export default function Footer() {
                                 </svg>
                             </a>
                             {/* Facebook */}
-                            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 hover:border-[#d2a373] hover:text-[#d2a373] transition-all">
+                            <a href={CONTACT.social.facebook} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 hover:border-[#d2a373] hover:text-[#d2a373] transition-all">
                                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                                 </svg>
                             </a>
-                            {/* Trip Advisor / Generic */}
-                            <a href="#" target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 hover:border-[#d2a373] hover:text-[#d2a373] transition-all">
+                            {/* TripAdvisor */}
+                            <a href={CONTACT.social.tripadvisor} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 hover:border-[#d2a373] hover:text-[#d2a373] transition-all">
                                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                                     <circle cx="12" cy="12" r="10" />
                                     <path d="M8 14s1.5 2 4 2 4-2 4-2" />
@@ -220,8 +221,8 @@ export default function Footer() {
                         </div>
 
                         {/* Copyright */}
-                        <div className="text-center md:text-right font-sans text-[11px] leading-[1.6] text-white/40">
-                            <p>© {new Date().getFullYear()} Golden Moment Café & Restaurant.</p>
+                        <div className="text-center md:text-right font-sans text-[12px] leading-[1.6] text-white/40">
+                            <p>© {new Date().getFullYear()} Golden Moment Café &amp; Restaurant.</p>
                             <p>All rights reserved.</p>
                         </div>
                     </div>

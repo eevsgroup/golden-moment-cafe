@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/private/', '/api/'],
+      disallow: ['/order-confirmation', '/private/', '/api/'],
     },
     sitemap: 'https://goldenmoment.au/sitemap.xml',
   };

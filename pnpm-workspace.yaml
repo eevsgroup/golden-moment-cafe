@@ -1,6 +1,15 @@
 packages:
   - "client"
+  - "server"
+  - "packages/*"
+
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  bcrypt: true
+  esbuild: true
+  prisma: true
+  unrs-resolver: true
 
 ignoredBuiltDependencies:
   - sharp
-  - unrs-resolver

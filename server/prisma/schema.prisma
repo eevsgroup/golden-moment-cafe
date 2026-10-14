@@ -1,0 +1,77 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model MenuCategory {
+  id        String     @id @default(uuid())
+  posId     String?    @unique @map("restroopsId")
+  name      String
+  sortOrder Int        @default(0)
+  items     MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id          String       @id @default(uuid())
+  posId       String?      @unique @map("restroopsId")
+  name        String
+  description String?
+  price       Int          // Integer cents
+  image       String?
+  active      Boolean      @default(true)
+  isSpecial   Boolean      @default(false)
+  categoryId  String
+  category    MenuCategory @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Order {
+  id        String @id @default(uuid())
+  posId     String? @map("restroopsId")
+  orderType String
+  status    String
+  totalAmount Int // Integer cents
+
+  // Stripe Checkout session; unique lookup is used by checkout.ts.
+  stripeSession String? @unique
+
+  // Idempotency for repeated checkout requests.
+  checkoutRequestId   String? @unique
+  checkoutRequestHash String?
+
+  customerName    String?
+  customerPhone   String?
+  tableNumber     String?
+  deliveryAddress String?
+
+  // Snapshot of the menu items and prices at order creation.
+  items Json?
+
+  userId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StripeWebhookEvent {
+  id          String    @id @default(uuid())
+  eventId     String    @unique
+  type        String
+  status      String    @default("RECEIVED")
+  attempts    Int       @default(0)
+  lockedAt    DateTime?
+  processedAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, lockedAt])
+}
