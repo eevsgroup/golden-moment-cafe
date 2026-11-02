@@ -1,6 +1,6 @@
 import Hero from "@/components/sections/Hero";
-import Introduction from "@/components/sections/Introduction";
-import Food from "@/components/sections/Food";
+import GMDivider from "@/components/ui/GMDivider";
+import ExploreOurFood from "@/components/sections/ExploreOurFood";
 import Menu from "@/components/sections/Menu";
 import DiningExperience from "@/components/sections/DiningExperience";
 import Contact from "@/components/sections/Contact";
@@ -10,8 +10,8 @@ export default function Home() {
   return (
     <main>
       <Hero />
-      <Introduction />
-      <Food />
+      <GMDivider leftText="Golden Moment" rightText="Canberra · ACT" />
+      <ExploreOurFood />
       <Menu />
       <DiningExperience />
       <Contact />

@@ -77,8 +77,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${instrumentSerif.variable} ${manrope.variable} ${signatureFont.variable}`}>
-      <body>
+    <html lang="en" suppressHydrationWarning className={`${instrumentSerif.variable} ${manrope.variable} ${signatureFont.variable}`}>
+      <body suppressHydrationWarning>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -2,7 +2,8 @@
 "use client";
 
 import { useCart } from "@/lib/context/CartContext";
-import { createCheckoutSession } from "@/lib/api/checkout";
+import { createCheckoutSession, isCheckoutAvailable } from "@/lib/api/checkout";
+import { CONTACT } from "@/lib/data/contact";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { OrderType } from "@/lib/types";
@@ -659,43 +660,55 @@ export default function CartDrawer() {
                                 </p>
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={handleCheckout}
-                                disabled={loading}
-                                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-terracotta px-5 text-xs font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-cocoa disabled:cursor-not-allowed disabled:opacity-50 sm:px-7"
-                            >
-                                {loading ? (
-                                    <>
-                                        <svg
-                                            className="h-4 w-4 animate-spin"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            aria-hidden="true"
-                                        >
-                                            <circle
-                                                className="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                            />
-                                            <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"
-                                            />
-                                        </svg>
-                                        Processing
-                                    </>
-                                ) : (
-                                    <>
-                                        Checkout{" "}
-                                        <span aria-hidden="true">↗</span>
-                                    </>
-                                )}
-                            </button>
+                            {isCheckoutAvailable() ? (
+                                <button
+                                    type="button"
+                                    onClick={handleCheckout}
+                                    disabled={loading}
+                                    className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gold-cta px-5 text-xs font-bold uppercase tracking-[0.12em] text-espresso transition-colors hover:bg-gold-deep disabled:cursor-not-allowed disabled:opacity-50 sm:px-7"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <svg
+                                                className="h-4 w-4 animate-spin"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                aria-hidden="true"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                />
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"
+                                                />
+                                            </svg>
+                                            Processing
+                                        </>
+                                    ) : (
+                                        <>
+                                            Checkout{" "}
+                                            <span aria-hidden="true">↗</span>
+                                        </>
+                                    )}
+                                </button>
+                            ) : (
+                                <a
+                                    href={CONTACT.whatsappUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gold-cta px-5 text-xs font-bold uppercase tracking-[0.12em] text-espresso transition-colors hover:bg-gold-deep sm:px-7"
+                                >
+                                    Order via WhatsApp{" "}
+                                    <span aria-hidden="true">↗</span>
+                                </a>
+                            )}
                         </div>
                     </footer>
                 )}

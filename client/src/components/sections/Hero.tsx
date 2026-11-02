@@ -1,214 +1,367 @@
 "use client";
 
-import { useRef } from "react";
 import Image from "next/image";
+import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {
+    ArrowDownIcon,
+    ArrowRightIcon,
+    ClockIcon,
+    MapPinIcon,
+} from "@phosphor-icons/react";
+
 import { HOURS_SUMMARY } from "@/lib/data/hours";
 import { CONTACT } from "@/lib/data/contact";
+import { SECTION_CONTENT } from "@/lib/data/sections";
+
+gsap.registerPlugin(useGSAP, ScrollTrigger);
+
+const HERO_CONTENT = [
+    ".hero-eyebrow",
+    ".hero-heading",
+    ".hero-copy",
+    ".hero-actions",
+    ".hero-meta",
+    ".hero-scroll",
+].join(", ");
 
 export default function Hero() {
     const heroRef = useRef<HTMLElement>(null);
 
-    useGSAP(() => {
-        // Respect reduced motion preference
-        const prefersReducedMotion = window.matchMedia(
-            "(prefers-reduced-motion: reduce)"
-        ).matches;
+    useGSAP(
+        () => {
+            const hero = heroRef.current;
 
-        if (prefersReducedMotion) {
-            // Instantly reveal everything, no animation
-            gsap.set(".reveal-eyebrow, .reveal-heading, .reveal-text, .reveal-footer", {
-                opacity: 1,
-                y: 0,
+            if (!hero) return;
+
+            const image = hero.querySelector<HTMLElement>(".hero-image");
+
+            if (!image) return;
+
+            const prefersReducedMotion = window.matchMedia(
+                "(prefers-reduced-motion: reduce)"
+            ).matches;
+
+            // Content is visible by default in the markup's no-JS state.
+            // GSAP owns the entrance animation only after initialization.
+            if (prefersReducedMotion) {
+                gsap.set(HERO_CONTENT, {
+                    autoAlpha: 1,
+                    clearProps: "transform",
+                });
+
+                gsap.set(image, {
+                    clearProps: "transform",
+                });
+
+                return;
+            }
+
+            const entrance = gsap.timeline({
+                defaults: {
+                    ease: "power3.out",
+                },
             });
-            return;
-        }
 
-        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+            entrance
+                .fromTo(
+                    ".hero-eyebrow",
+                    { autoAlpha: 0, y: 14 },
+                    {
+                        autoAlpha: 1,
+                        y: 0,
+                        duration: 0.65,
+                        clearProps: "transform",
+                    },
+                    0.1
+                )
+                .fromTo(
+                    ".hero-heading",
+                    { autoAlpha: 0, y: 24 },
+                    {
+                        autoAlpha: 1,
+                        y: 0,
+                        duration: 0.9,
+                        clearProps: "transform",
+                    },
+                    0.2
+                )
+                .fromTo(
+                    ".hero-copy",
+                    { autoAlpha: 0, y: 12 },
+                    {
+                        autoAlpha: 1,
+                        y: 0,
+                        duration: 0.7,
+                        stagger: 0.1,
+                        clearProps: "transform",
+                    },
+                    0.5
+                )
+                .fromTo(
+                    ".hero-actions",
+                    { autoAlpha: 0, y: 12 },
+                    {
+                        autoAlpha: 1,
+                        y: 0,
+                        duration: 0.65,
+                        clearProps: "transform",
+                    },
+                    0.72
+                )
+                .fromTo(
+                    ".hero-meta",
+                    { autoAlpha: 0, y: 12 },
+                    {
+                        autoAlpha: 1,
+                        y: 0,
+                        duration: 0.7,
+                        clearProps: "transform",
+                    },
+                    0.8
+                )
+                .fromTo(
+                    ".hero-scroll",
+                    { autoAlpha: 0 },
+                    {
+                        autoAlpha: 1,
+                        duration: 0.55,
+                    },
+                    1
+                );
 
-        // Image slight scale-down effect
-        tl.fromTo(
-            ".hero-img",
-            { scale: 1.05 },
-            { scale: 1, duration: 2.5, ease: "power2.out" },
-            0
-        );
-
-        // Staggered text reveals
-        tl.fromTo(
-            ".reveal-eyebrow",
-            { y: 20, autoAlpha: 0 },
-            { y: 0, autoAlpha: 1, duration: 1 },
-            0.5
-        )
-            .fromTo(
-                ".reveal-heading",
-                { y: "120%", autoAlpha: 0 },
-                { y: "0%", autoAlpha: 1, duration: 1.2 },
-                0.6
-            )
-            .fromTo(
-                ".reveal-text",
-                { y: 20, autoAlpha: 0 },
-                { y: 0, autoAlpha: 1, duration: 1, stagger: 0.2 },
-                0.8
-            )
-            .fromTo(
-                ".reveal-footer",
-                { autoAlpha: 0 },
-                { autoAlpha: 1, duration: 1.5 },
-                1.2
+            // Avoid competing scale animations: the entrance handles
+            // the image zoom, while ScrollTrigger handles vertical drift.
+            gsap.fromTo(
+                image,
+                { scale: 1.08 },
+                {
+                    scale: 1,
+                    duration: 2,
+                    ease: "power2.out",
+                    overwrite: "auto",
+                }
             );
-    }, { scope: heroRef });
+
+            const media = gsap.matchMedia();
+
+            // Desktop/tablet: pin briefly while the image drifts.
+            media.add("(min-width: 768px)", () => {
+                gsap.to(image, {
+                    yPercent: 5,
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: hero,
+                        start: "top top",
+                        end: "+=40%",
+                        scrub: 1,
+                        pin: hero,
+                        pinSpacing: true,
+                        anticipatePin: 1,
+                        invalidateOnRefresh: true,
+                    },
+                });
+            });
+
+            // Mobile: retain subtle parallax without pinning the viewport.
+            media.add("(max-width: 767px)", () => {
+                gsap.to(image, {
+                    yPercent: 3,
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: hero,
+                        start: "top top",
+                        end: "bottom top",
+                        scrub: 0.8,
+                        invalidateOnRefresh: true,
+                    },
+                });
+            });
+
+            return () => {
+                media.revert();
+            };
+        },
+        {
+            scope: heroRef,
+            dependencies: [],
+            revertOnUpdate: true,
+        }
+    );
 
     return (
         <section
             id="hero"
             ref={heroRef}
-            aria-label="Hero"
-            className="relative isolate min-h-[90svh] overflow-hidden bg-[#1e1713] text-text-inverse"
+            aria-label="Golden Moment Café introduction"
+            className="relative isolate flex min-h-[max(760px,100svh)] flex-col overflow-hidden bg-espresso text-cream"
         >
-            {/* Hero image — luminous, morning sun cafe view */}
-            <div className="absolute inset-0 -z-20 overflow-hidden">
+            {/* Background photography */}
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 -z-30 overflow-hidden bg-espresso"
+            >
                 <Image
-                    src="/images/heroimg.png"
-                    alt="Golden Moment Cafe in Canberra"
+                    src="/images/hero.png"
+                    alt=""
                     fill
                     priority
                     sizes="100vw"
-                    className="hero-img will-change-transform object-cover object-center"
+                    className="hero-image object-cover object-[57%_center] sm:object-center"
                 />
             </div>
-            {/* ── Sun-drenched Morning Lighting ── */}
 
-            {/* 1. Warm morning sunlight, concentrated in the upper-right */}
+            {/* Left-side directional overlay: ensures text on the left is crystal clear while cafe interior on the right remains luminous and warm */}
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 z-0
-  bg-[radial-gradient(ellipse_at_82%_12%,rgba(255,230,160,0.42)_0%,rgba(255,205,120,0.18)_38%,transparent_70%)]"
+                className="pointer-events-none absolute inset-0 -z-20"
+                style={{
+                    background: [
+                        "linear-gradient(90deg, rgba(20, 15, 11, 0.94) 0%, rgba(20, 15, 11, 0.88) 32%, rgba(20, 15, 11, 0.62) 55%, rgba(20, 15, 11, 0.20) 78%, transparent 100%)",
+                        "linear-gradient(0deg, rgba(20, 15, 11, 0.88) 0%, rgba(20, 15, 11, 0.35) 25%, transparent 50%)",
+                        "linear-gradient(180deg, rgba(20, 15, 11, 0.55) 0%, transparent 22%)",
+                    ].join(", "),
+                }}
             />
 
-            {/* 2. Gentle golden warmth across the scene */}
+            {/* Fine top rule */}
             <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 z-0
-  bg-gradient-to-tr from-[#6b4528]/20 via-amber-100/5 to-transparent"
+                className="pointer-events-none absolute inset-x-6 top-24 -z-10 hidden border-t border-white/20 sm:inset-x-8 sm:block lg:inset-x-12"
             />
 
-            {/* 3. Soft left-side scrim for text readability */}
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 z-0
-  bg-gradient-to-r from-[#1c140e]/45 via-[#1c140e]/20 to-transparent"
-            />
-
-            {/* 4. Subtle bottom shading for footer icons */}
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 z-0
-  bg-gradient-to-t from-[#18110b]/30 via-[#18110b]/5 to-transparent"
-            />
-            {/* Content */}
-            <div className="mx-auto flex min-h-[90svh] max-w-[1440px] flex-col justify-end px-6 pb-10 pt-28 sm:px-8 sm:pb-12 lg:px-12 lg:pb-14">
-                <div className="max-w-[760px]">
-                    {/* Morning Pill Badge */}
-                    <div className="mb-4 sm:mb-5">
-                        <div className="reveal-eyebrow invisible inline-flex items-center gap-2.5 rounded-full bg-black/30 backdrop-blur-md px-4 py-1.5 border border-white/20 text-white shadow-sm">
-                            <span className="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                            <span className="font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-amber-200">
-                                Canberra · Good Morning · Open from 7 AM
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="overflow-hidden pb-4">
-                        <div className="reveal-heading relative invisible">
-                            {/* 3D extrusion layer (behind) */}
-                            <h1
+            {/* Main content */}
+            <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col justify-center px-6 pb-8 pt-32 sm:px-8 sm:pb-10 sm:pt-36 lg:px-16 lg:pb-10 lg:pt-32">
+                <div className="grid w-full grid-cols-1 items-end gap-8 lg:grid-cols-[minmax(0,1fr)_150px] lg:gap-12">
+                    <div className="max-w-[850px]">
+                        <div className="hero-eyebrow mb-6 flex items-center gap-4 sm:mb-8">
+                            <span
                                 aria-hidden="true"
-                                className="max-w-[760px] font-serif text-[clamp(3.5rem,9vw,8rem)] leading-[0.84] tracking-[-0.045em] text-[#8b6914]"
-                                style={{
-                                    textShadow: `
-                                        0 1px 0 #7a5c10,
-                                        0 2px 0 #6b500d,
-                                        0 3px 0 #5c440a,
-                                        0 4px 0 #4d3808,
-                                        0 5px 0 #3e2d06,
-                                        0 6px 0 #2f2204,
-                                        0 7px 0 #201802,
-                                        0 8px 12px rgba(0,0,0,0.5),
-                                        0 8px 25px rgba(0,0,0,0.3)
-                                    `,
-                                }}
-                            >
-                                Golden
+                                className="h-px w-10 shrink-0 bg-gold sm:w-14"
+                            />
+
+                            <p className="font-sans text-xs font-semibold uppercase tracking-[0.2em] text-gold-pale sm:text-sm sm:tracking-[0.22em]">
+                                Canberra, Australia
+                            </p>
+                        </div>
+
+                        <div className="overflow-hidden pb-3">
+                            <h1 className="hero-heading max-w-[850px] font-display text-[clamp(3.4rem,7.1vw,7.1rem)] leading-[0.94] tracking-[-0.055em] text-white">
+                                Good food.
                                 <br />
-                                Moment
-                            </h1>
-                            {/* Shiny metallic face layer (front) */}
-                            <h1
-                                className="max-w-[760px] font-serif text-[clamp(3.5rem,9vw,8rem)] leading-[0.84] tracking-[-0.045em] absolute inset-0 drop-shadow-lg"
-                                style={{
-                                    background: "linear-gradient(170deg, #fef4c0 0%, #f0d56c 18%, #d4a833 35%, #b8860b 50%, #d4a833 62%, #f0d56c 78%, #fef4c0 100%)",
-                                    WebkitBackgroundClip: "text",
-                                    WebkitTextFillColor: "transparent",
-                                    backgroundClip: "text",
-                                }}
-                            >
-                                Golden
-                                <br />
-                                Moment
+                                Better{" "}
+                                <span className="font-serif font-normal italic text-gold-light">
+                                    moments.
+                                </span>
                             </h1>
                         </div>
-                    </div>
 
-                    <div className="mt-6 sm:mt-8">
-                        <p className="reveal-text invisible max-w-[460px] font-sans text-base leading-[1.7] text-white/95 sm:text-[17px] drop-shadow-sm font-medium">
-                            Fresh artisan coffee, sourdough brunch, handcrafted burgers & curries — served daily from 7 AM in the heart of Canberra.
-                        </p>
+                        <div className="mt-6 sm:mt-8">
+                            <p className="hero-copy section-lead section-lead-inverse">
+                                {SECTION_CONTENT.hero.description}
+                            </p>
 
-                        <p className="reveal-text invisible mt-5 font-signature text-[clamp(2rem,3.8vw,2.8rem)] text-amber-300 drop-shadow-md sm:mt-6 -rotate-2 origin-left">
-                            come, stay awhile
-                        </p>
+                            <p className="hero-copy mt-4 font-signature text-[2rem] leading-tight text-gold-light sm:mt-5 sm:text-[2.4rem]">
+                                {SECTION_CONTENT.hero.script}
+                            </p>
+                        </div>
 
-                        <div className="mt-7 flex flex-col gap-3.5 sm:mt-8 sm:flex-row sm:items-center sm:gap-5">
-                            {/* High-visibility golden order button */}
+                        <div className="hero-actions mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:items-center sm:gap-4">
                             <a
                                 href="#menu"
-                                className="reveal-text invisible group inline-flex items-center justify-center gap-3 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 px-8 py-3.5 font-sans text-[12px] font-bold uppercase tracking-[0.15em] text-[#1a1410] shadow-[0_10px_30px_rgba(245,158,11,0.45)] transition-all duration-300 hover:scale-105 hover:shadow-[0_14px_40px_rgba(245,158,11,0.65)] active:scale-95"
+                                className="group inline-flex min-h-[54px] items-center justify-center gap-4 rounded-full bg-gold px-7 py-4 text-xs font-bold uppercase tracking-[0.13em] text-espresso transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-gold-hover active:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cream sm:px-8 sm:text-[13px]"
                             >
-                                <span>Explore Menu & Order</span>
-                                <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
+                                <span>Explore the menu</span>
+
+                                <ArrowRightIcon
+                                    size={19}
+                                    weight="regular"
+                                    aria-hidden="true"
+                                    className="transition-transform duration-300 group-hover:translate-x-1"
+                                />
                             </a>
 
                             <a
                                 href="#contact"
-                                className="reveal-text invisible group inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-black/25 backdrop-blur-md px-7 py-3.5 font-sans text-[12px] font-semibold uppercase tracking-[0.15em] text-white transition-all duration-300 hover:bg-white/20 hover:border-white/60 active:scale-95"
+                                className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-white/50 bg-espresso/35 px-7 py-4 text-xs font-semibold uppercase tracking-[0.13em] text-white backdrop-blur-sm transition-[background-color,border-color] duration-300 hover:border-white/80 hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cream sm:px-8 sm:text-[13px]"
                             >
-                                <span>Reserve a Table</span>
+                                Reserve a table
                             </a>
                         </div>
                     </div>
+
+                    {/* Vertical editorial accent */}
+                    <div className="hidden justify-self-end pb-2 lg:block">
+                        <div
+                            aria-hidden="true"
+                            className="mx-auto mb-5 h-14 w-px bg-gradient-to-b from-transparent via-gold/90 to-transparent"
+                        />
+
+                        <p className="font-sans text-[13px] font-medium uppercase tracking-[0.2em] text-white/80 [writing-mode:vertical-rl]">
+                            Coffee · Brunch · Good company
+                        </p>
+                    </div>
                 </div>
 
-                {/* Utility footer — address + hours */}
-                <div className="reveal-footer invisible mt-10 flex flex-col gap-3 border-t border-white/20 pt-4 sm:mt-16 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2 label-micro text-white/75 drop-shadow-sm">
-                        <svg className="w-4 h-4 shrink-0 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                            <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span>{CONTACT.address.short}</span>
-                    </div>
-                    <div className="flex items-center gap-2 label-micro text-white/75 drop-shadow-sm">
-                        <svg className="w-4 h-4 shrink-0 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M12 6v6l4 2" />
-                        </svg>
-                        <span>Open Daily · {HOURS_SUMMARY}</span>
+                {/* Location and hours */}
+                <div className="hero-meta mt-10 border-t border-white/30 pt-5 sm:mt-14 sm:pt-6 lg:mt-16">
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-end">
+                        <a
+                            href="#contact"
+                            className="group flex min-w-0 items-start gap-3 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-light"
+                        >
+                            <MapPinIcon
+                                size={23}
+                                weight="regular"
+                                aria-hidden="true"
+                                className="mt-1 shrink-0 text-gold-light"
+                            />
+
+                            <span className="min-w-0">
+                                <span className="block text-[13px] font-semibold uppercase tracking-[0.14em] text-white/75">
+                                    Find us
+                                </span>
+
+                                <span className="mt-1.5 block text-base leading-relaxed text-white transition-colors duration-200 group-hover:text-gold-pale sm:text-[17px]">
+                                    {CONTACT.address.short}
+                                </span>
+                            </span>
+                        </a>
+
+                        <div className="flex min-w-0 items-start gap-3">
+                            <ClockIcon
+                                size={23}
+                                weight="regular"
+                                aria-hidden="true"
+                                className="mt-1 shrink-0 text-gold-light"
+                            />
+
+                            <span className="min-w-0">
+                                <span className="block text-[13px] font-semibold uppercase tracking-[0.14em] text-white/75">
+                                    Opening hours
+                                </span>
+
+                                <span className="mt-1.5 block text-base leading-relaxed text-white sm:text-[17px]">
+                                    {HOURS_SUMMARY}
+                                </span>
+                            </span>
+                        </div>
+
+                        <a
+                            href="#explore-food"
+                            className="hero-scroll group hidden items-center gap-3 self-end rounded-sm pb-1 text-[13px] font-semibold uppercase tracking-[0.14em] text-white/85 transition-colors duration-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-gold-light lg:flex"
+                        >
+                            <span>Explore our food</span>
+
+                            <ArrowDownIcon
+                                size={18}
+                                weight="regular"
+                                aria-hidden="true"
+                                className="transition-transform duration-300 group-hover:translate-y-1"
+                            />
+                        </a>
                     </div>
                 </div>
             </div>

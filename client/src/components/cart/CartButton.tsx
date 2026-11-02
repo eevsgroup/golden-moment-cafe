@@ -37,9 +37,9 @@ export default function CartButton() {
                     aria-hidden="true"
                     className="
             flex h-10 w-10 shrink-0 items-center justify-center
-            rounded-full bg-terracotta text-white
+            rounded-full bg-gold-cta text-espresso
             transition-colors duration-200
-            group-hover:bg-[#b97255]
+            group-hover:bg-gold-deep
           "
                 >
                     <svg

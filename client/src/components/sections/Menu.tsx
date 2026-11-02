@@ -2,39 +2,48 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import GMDivider from "@/components/ui/GMDivider";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+
 import { useCart } from "@/lib/context/CartContext";
 import { fetchMenu } from "@/lib/api/menu";
 import type { MenuCategory, MenuItem } from "@/lib/types";
+import { SECTION_CONTENT } from "@/lib/data/sections";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
+/* -------------------------------------------------------------------------- */
+/* Menu photography                                                           */
+/* -------------------------------------------------------------------------- */
+
 const CATEGORY_IMAGES: Record<string, string> = {
     PASTAS:
-        "https://images.unsplash.com/photo-1621996311239-531f2425111b?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1621996311239-531f2425111b?q=80&w=1200&auto=format&fit=crop",
     BURGERS:
-        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1200&auto=format&fit=crop",
     "RICE & CURRY":
-        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=1200&auto=format&fit=crop",
     "NOODLES & DUMPLINGS":
-        "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1585032226651-759b368d7246?q=80&w=1200&auto=format&fit=crop",
     "CLASSICS & SIDES":
-        "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=1200&auto=format&fit=crop",
     "ADD-ONS":
-        "https://images.unsplash.com/photo-1525351484163-c529a90d566f?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1525351484163-c529a90d566f?q=80&w=1200&auto=format&fit=crop",
     "COFFEE & DRINKS":
-        "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?q=80&w=1200&auto=format&fit=crop",
     "BRUNCH & CLASSICS":
-        "https://images.unsplash.com/photo-1525351484163-c529a90d566f?q=80&w=900&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1525351484163-c529a90d566f?q=80&w=1200&auto=format&fit=crop",
 };
 
 const DEFAULT_IMAGE =
-    "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=900&auto=format&fit=crop";
+    "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=1200&auto=format&fit=crop";
 
+/*
+ * These promotions are retained from the existing Menu implementation.
+ * Confirm their prices, hours and availability with the café before launch.
+ */
 const OFFERS = [
     {
         id: "breakfast",
@@ -43,8 +52,8 @@ const OFFERS = [
         price: "$9.99",
         description: "Bacon and egg roll with a small coffee.",
         image:
-            "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=900&auto=format&fit=crop",
-        imageAlt: "Fresh breakfast pastries and fruit",
+            "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?q=80&w=1200&auto=format&fit=crop",
+        imageAlt: "Breakfast pastries and fruit",
         action: "Explore breakfast",
         tone: "light",
     },
@@ -55,7 +64,7 @@ const OFFERS = [
         price: "From $15",
         description: "A selected meal paired with any canned drink.",
         image:
-            "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=900&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1200&auto=format&fit=crop",
         imageAlt: "Freshly made cheeseburger",
         action: "Explore lunch",
         tone: "light",
@@ -67,8 +76,8 @@ const OFFERS = [
         price: "From $15 pp",
         description: "Sandwiches, wraps, pastries and coffee for the team.",
         image:
-            "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=900&auto=format&fit=crop",
-        imageAlt: "Crispy golden chips served for sharing",
+            "https://images.unsplash.com/photo-1576107232684-1279f390859f?q=80&w=1200&auto=format&fit=crop",
+        imageAlt: "Food prepared for sharing",
         action: "Enquire about catering",
         offer: "10% off catering orders",
         tone: "dark",
@@ -93,39 +102,71 @@ function ArrowIcon({ className = "" }: { className?: string }) {
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.8"
+            strokeWidth="1.7"
             strokeLinecap="round"
             strokeLinejoin="round"
         >
-            <path d="M5 12h14" />
-            <path d="m12 5 7 7-7 7" />
+            <path d="M4.75 12h14.5" />
+            <path d="m12.5 5.25 6.75 6.75-6.75 6.75" />
         </svg>
     );
 }
 
-function PromotionCard({
-    offer,
-}: {
-    offer: (typeof OFFERS)[number];
-}) {
+function PlusIcon({ className = "" }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            className={className}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+        >
+            <path d="M12 5v14M5 12h14" />
+        </svg>
+    );
+}
+
+function CheckIcon({ className = "" }: { className?: string }) {
+    return (
+        <svg
+            aria-hidden="true"
+            className={className}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="m5 12.5 4.2 4.2L19 7" />
+        </svg>
+    );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Offer cards                                                                */
+/* -------------------------------------------------------------------------- */
+
+function PromotionCard({ offer }: { offer: (typeof OFFERS)[number] }) {
     const isDark = offer.tone === "dark";
-    const actionLabel = "offer" in offer ? offer.offer : offer.action;
+    const offerNote = "offer" in offer ? offer.offer : null;
+    const href = offer.id === "catering" ? "#contact" : "#menu-items";
 
     return (
-        <Link
-            href="#contact"
-            aria-label={`${actionLabel}: ${offer.title}, ${offer.price}`}
+        <article
             className={[
-                "offer-card group relative isolate flex min-w-0 flex-col overflow-hidden rounded-[1.15rem]",
-                "border transition-[transform,box-shadow,border-color] duration-300 ease-out",
-                "motion-reduce:transition-none",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4",
+                "offer-card group relative isolate flex min-w-0 flex-col overflow-hidden rounded-[1.35rem]",
+                "border transition-[transform,box-shadow,border-color] duration-500 ease-out",
+                "hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(32,27,23,0.12)]",
+                "motion-reduce:transform-none motion-reduce:transition-none",
                 isDark
-                    ? "border-espresso/15 bg-espresso text-cream hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(32,27,23,0.18)]"
-                    : "border-[#dfd2bf] bg-[#f8f2e8] text-espresso hover:-translate-y-1 hover:border-[#c9ad8a] hover:shadow-[0_18px_40px_rgba(67,48,31,0.10)]",
+                    ? "border-espresso bg-espresso text-cream"
+                    : "border-espresso/10 bg-[#eee7da] text-espresso hover:border-sand",
             ].join(" ")}
         >
-            <div className="relative h-36 overflow-hidden sm:h-[9rem] lg:h-[9rem]">
+            <div className="relative aspect-[16/8.5] overflow-hidden sm:aspect-[16/9]">
                 <Image
                     src={offer.image}
                     alt={offer.imageAlt}
@@ -136,30 +177,33 @@ function PromotionCard({
                 <div
                     aria-hidden="true"
                     className={[
-                        "absolute inset-x-0 bottom-0 h-[40%]",
+                        "absolute inset-0",
                         isDark
-                            ? "bg-gradient-to-t from-espresso/80 to-transparent"
-                            : "bg-gradient-to-t from-[#f8f2e8]/70 to-transparent",
+                            ? "bg-gradient-to-t from-espresso/80 via-espresso/10 to-espresso/5"
+                            : "bg-gradient-to-t from-espresso/55 via-transparent to-espresso/5",
                     ].join(" ")}
                 />
                 <span
                     className={[
                         "absolute left-4 top-4 inline-flex max-w-[calc(100%-2rem)] items-center rounded-full px-3 py-1.5",
-                        "text-[0.62rem] font-semibold uppercase tracking-[0.13em] backdrop-blur-md",
-                        isDark
-                            ? "bg-amber-400 text-espresso"
-                            : "bg-espresso/85 text-white",
+                        "text-[0.62rem] font-semibold uppercase tracking-[0.13em] backdrop-blur-md sm:text-[0.66rem]",
+                        isDark ? "bg-gold text-espresso" : "bg-cream/95 text-espresso",
                     ].join(" ")}
                 >
                     {offer.eyebrow}
                 </span>
+                {offerNote && (
+                    <span className="absolute bottom-4 left-4 rounded-full border border-white/25 bg-espresso/70 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-gold-pale backdrop-blur-md">
+                        {offerNote}
+                    </span>
+                )}
             </div>
 
-            <div className="flex flex-1 flex-col p-4 sm:p-[1.15rem]">
+            <div className="flex flex-1 flex-col p-5 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                     <h3
                         className={[
-                            "min-w-0 font-serif text-[1.18rem] leading-tight tracking-[-0.025em] sm:text-[1.22rem]",
+                            "min-w-0 font-serif text-[1.35rem] leading-[1.05] tracking-[-0.03em] sm:text-[1.45rem]",
                             isDark ? "text-cream" : "text-espresso",
                         ].join(" ")}
                     >
@@ -167,8 +211,8 @@ function PromotionCard({
                     </h3>
                     <span
                         className={[
-                            "shrink-0 pt-0.5 font-serif text-[1rem] font-semibold tracking-[-0.025em]",
-                            isDark ? "text-amber-300" : "text-[#a64c22]",
+                            "shrink-0 pt-0.5 font-serif text-[1.05rem] font-semibold tracking-[-0.025em]",
+                            isDark ? "text-gold-light" : "text-sienna",
                         ].join(" ")}
                     >
                         {offer.price}
@@ -177,39 +221,55 @@ function PromotionCard({
 
                 <p
                     className={[
-                        "mt-2 text-[0.78rem] leading-[1.55]",
-                        isDark ? "text-cream/75" : "text-[#766b5d]",
+                        "mt-2.5 max-w-[34ch] text-[0.83rem] leading-[1.6]",
+                        isDark ? "text-cream/75" : "text-text-secondary",
                     ].join(" ")}
                 >
                     {offer.description}
                 </p>
 
-                <div className="mt-4 flex min-h-8 items-center justify-between gap-3">
-                    <span
-                        className={[
-                            "text-[0.64rem] font-semibold uppercase tracking-[0.12em]",
-                            isDark ? "text-amber-300" : "text-[#a64c22]",
-                        ].join(" ")}
-                    >
-                        {actionLabel}
-                    </span>
+                <Link
+                    href={href}
+                    aria-label={`${offer.action}: ${offer.title}`}
+                    className={[
+                        "mt-5 inline-flex min-h-10 items-center justify-between gap-3 border-t pt-3",
+                        "text-[0.68rem] font-bold uppercase tracking-[0.12em] transition-colors duration-300",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4",
+                        isDark
+                            ? "border-white/15 text-gold-light hover:text-white"
+                            : "border-espresso/10 text-sienna-dark hover:text-espresso",
+                    ].join(" ")}
+                >
+                    <span>{offer.action}</span>
                     <span
                         aria-hidden="true"
                         className={[
-                            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-300",
-                            "group-hover:translate-x-0.5",
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-300 group-hover:translate-x-1",
                             isDark
-                                ? "bg-amber-400/15 text-amber-300 group-hover:bg-amber-400 group-hover:text-espresso"
-                                : "bg-[#ead9bf] text-[#8d451f] group-hover:bg-[#a64c22] group-hover:text-white",
+                                ? "bg-gold/15 text-gold-light group-hover:bg-gold group-hover:text-espresso"
+                                : "bg-bone text-sienna-dark group-hover:bg-sienna group-hover:text-white",
                         ].join(" ")}
                     >
                         <ArrowIcon className="h-4 w-4" />
                     </span>
-                </div>
+                </Link>
             </div>
-        </Link>
+        </article>
     );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Menu item cards                                                            */
+/* -------------------------------------------------------------------------- */
+
+type MenuItemCardProps = {
+    item: MenuItem;
+    categoryName: string;
+    quantity: number;
+    added: boolean;
+    onAdd: () => void;
+    onDecrease: () => void;
+};
 
 function MenuItemCard({
     item,
@@ -218,56 +278,55 @@ function MenuItemCard({
     added,
     onAdd,
     onDecrease,
-}: {
-    item: MenuItem;
-    categoryName: string;
-    quantity: number;
-    added: boolean;
-    onAdd: () => void;
-    onDecrease: () => void;
-}) {
+}: MenuItemCardProps) {
     const total = formatPrice(item.price * quantity);
 
     return (
-        <article className="menu-card group flex min-w-0 flex-col rounded-2xl border border-transparent p-2.5 transition-[border-color,background-color,box-shadow] duration-300 hover:border-border hover:bg-surface/60 hover:shadow-[0_10px_28px_rgba(32,27,23,0.045)] sm:p-3">
-            <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl bg-bone">
+        <article className="menu-item-card group flex min-w-0 flex-col">
+            <div className="relative mb-4 aspect-[5/4] overflow-hidden rounded-[1.1rem] bg-bone">
                 <Image
                     src={getItemImage(item, categoryName)}
                     alt={item.name}
                     fill
-                    sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw"
+                    sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, (max-width: 1535px) 33vw, 25vw"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045] motion-reduce:transform-none"
                 />
 
-                {quantity > 0 && (
-                    <span className="absolute left-3 top-3 inline-flex items-center rounded-full border border-white/20 bg-espresso/90 px-3 py-1.5 text-[0.68rem] font-semibold text-white shadow-sm backdrop-blur-sm">
-                        {quantity} in order
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-espresso/20 to-transparent"
+                />
+
+                <span className="absolute right-3 top-3 rounded-full border border-white/60 bg-cream/95 px-3 py-1.5 text-sm font-semibold tabular-nums text-espresso shadow-sm backdrop-blur-sm">
+                    {formatPrice(item.price)}
+                </span>
+
+                {item.isSpecial && (
+                    <span className="absolute bottom-3 left-3 inline-flex items-center rounded-full bg-espresso px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-gold-pale shadow-sm">
+                        Chef&apos;s special
                     </span>
                 )}
 
-                {item.isSpecial && (
-                    <span className="absolute right-3 top-3 rounded-full bg-[#a64c22] px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-white shadow-sm">
-                        Chef&apos;s special
+                {quantity > 0 && (
+                    <span className="absolute left-3 top-3 inline-flex items-center rounded-full border border-white/20 bg-espresso/90 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-white backdrop-blur-sm">
+                        {quantity} in order
                     </span>
                 )}
             </div>
 
-            <div className="flex flex-1 flex-col px-1 pb-1">
+            <div className="flex flex-1 flex-col px-0.5">
                 <div className="flex items-start justify-between gap-3">
-                    <h4 className="min-w-0 font-serif text-[1.2rem] leading-[1.12] tracking-[-0.025em] text-text">
+                    <h4 className="min-w-0 font-serif text-[1.3rem] leading-[1.08] tracking-[-0.03em] text-espresso sm:text-[1.4rem]">
                         {item.name}
                     </h4>
-                    <span className="shrink-0 pt-0.5 text-sm font-semibold tabular-nums text-accent">
-                        {formatPrice(item.price)}
-                    </span>
                 </div>
 
                 {item.description ? (
-                    <p className="mt-2 line-clamp-2 min-h-[2.65rem] text-[0.82rem] leading-[1.6] text-text-muted">
+                    <p className="mt-2 line-clamp-2 min-h-[2.65rem] max-w-[42ch] text-[0.82rem] leading-[1.6] text-text-secondary">
                         {item.description}
                     </p>
                 ) : (
-                    <div className="min-h-[2.65rem]" />
+                    <div className="min-h-[2.65rem]" aria-hidden="true" />
                 )}
 
                 <div className="mt-auto pt-4">
@@ -275,41 +334,36 @@ function MenuItemCard({
                         <button
                             type="button"
                             onClick={onAdd}
+                            aria-label={`Add ${item.name} to order`}
                             className={[
-                                "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border px-4 py-2.5",
-                                "text-[0.7rem] font-semibold uppercase tracking-[0.12em] transition-colors duration-200",
+                                "group/add inline-flex min-h-11 w-full items-center justify-between gap-3 rounded-full border px-4 py-2.5",
+                                "text-[0.68rem] font-bold uppercase tracking-[0.12em] transition-[background-color,border-color,color,transform] duration-200",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
                                 added
-                                    ? "border-[#426a4a] bg-[#426a4a] text-white"
-                                    : "border-[#c8a77e] bg-transparent text-text hover:border-accent hover:bg-accent hover:text-white",
+                                    ? "border-success bg-success text-white"
+                                    : "border-espresso/20 bg-transparent text-espresso hover:border-gold-cta hover:bg-gold-cta hover:text-espresso active:scale-[0.985]",
                             ].join(" ")}
                         >
-                            {added ? (
-                                <>
-                                    <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-                                        <path d="m5 12 4 4L19 6" />
-                                    </svg>
-                                    Added
-                                </>
-                            ) : (
-                                <>
-                                    <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                                        <path d="M12 5v14M5 12h14" />
-                                    </svg>
-                                    Add to order
-                                </>
-                            )}
+                            <span className="inline-flex items-center gap-2">
+                                {added ? (
+                                    <CheckIcon className="h-4 w-4" />
+                                ) : (
+                                    <PlusIcon className="h-4 w-4 transition-transform duration-300 group-hover/add:rotate-90" />
+                                )}
+                                {added ? "Added to order" : "Add to order"}
+                            </span>
+                            <ArrowIcon className="h-4 w-4 transition-transform duration-300 group-hover/add:translate-x-1" />
                         </button>
                     ) : (
                         <div
-                            className="flex min-h-11 items-center justify-between gap-2 rounded-full border border-[#d8c2a5] bg-[#f6ecdd] p-1"
+                            className="flex min-h-11 items-center justify-between gap-2 rounded-full border border-espresso/15 bg-[#eee7da] p-1"
                             aria-label={`${item.name}, quantity ${quantity}, total ${total}`}
                         >
                             <button
                                 type="button"
                                 onClick={onDecrease}
                                 aria-label={`Remove one ${item.name}`}
-                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-lg text-espresso shadow-sm transition-colors hover:bg-[#ead9bf] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cream text-xl text-espresso transition-colors duration-200 hover:bg-bone focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                             >
                                 <span aria-hidden="true">−</span>
                             </button>
@@ -317,7 +371,7 @@ function MenuItemCard({
                                 <span className="text-xs font-semibold text-espresso">
                                     {quantity} in order
                                 </span>
-                                <span className="mt-0.5 text-[0.7rem] tabular-nums text-[#8d451f]">
+                                <span className="mt-0.5 text-[0.7rem] tabular-nums text-sienna-dark">
                                     {total}
                                 </span>
                             </span>
@@ -325,7 +379,7 @@ function MenuItemCard({
                                 type="button"
                                 onClick={onAdd}
                                 aria-label={`Add another ${item.name}`}
-                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-espresso text-lg text-white transition-colors hover:bg-[#a64c22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-espresso text-lg text-cream transition-[background-color,color,transform] duration-200 hover:bg-gold-cta hover:text-espresso active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                             >
                                 <span aria-hidden="true">+</span>
                             </button>
@@ -337,13 +391,40 @@ function MenuItemCard({
     );
 }
 
+function MenuLoadingState() {
+    return (
+        <div
+            className="grid grid-cols-1 gap-x-6 gap-y-9 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4"
+            aria-label="Loading menu items"
+            aria-busy="true"
+        >
+            {Array.from({ length: 8 }, (_, index) => (
+                <div key={index} className="animate-pulse">
+                    <div className="mb-4 aspect-[5/4] rounded-[1.1rem] bg-bone" />
+                    <div className="mb-3 h-5 w-3/4 rounded bg-bone" />
+                    <div className="mb-2 h-3 w-full rounded bg-bone" />
+                    <div className="h-3 w-2/3 rounded bg-bone" />
+                    <div className="mt-5 h-11 rounded-full bg-bone" />
+                </div>
+            ))}
+        </div>
+    );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Menu section                                                               */
+/* -------------------------------------------------------------------------- */
+
 export default function Menu() {
     const sectionRef = useRef<HTMLElement>(null);
+    const addedTimeoutRef = useRef<number | null>(null);
     const { addItem, updateQuantity, getItemQuantity } = useCart();
 
     const [categories, setCategories] = useState<MenuCategory[]>([]);
     const [activeTab, setActiveTab] = useState("");
-    const [dataSource, setDataSource] = useState<"loading" | "server" | "fallback">("loading");
+    const [dataSource, setDataSource] = useState<
+        "loading" | "server" | "static"
+    >("loading");
     const [loadError, setLoadError] = useState(false);
     const [addedId, setAddedId] = useState<string | null>(null);
 
@@ -367,14 +448,23 @@ export default function Menu() {
             } catch {
                 if (cancelled) return;
                 setCategories([]);
-                setDataSource("fallback");
+                setDataSource("static");
                 setLoadError(true);
             }
         }
 
         void loadMenu();
+
         return () => {
             cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (addedTimeoutRef.current !== null) {
+                window.clearTimeout(addedTimeoutRef.current);
+            }
         };
     }, []);
 
@@ -386,13 +476,32 @@ export default function Menu() {
             const media = gsap.matchMedia();
 
             media.add("(prefers-reduced-motion: no-preference)", () => {
+                const intro = root.querySelector<HTMLElement>(".menu-intro");
                 const offerCards = root.querySelectorAll<HTMLElement>(".offer-card");
-                const menuCards = root.querySelectorAll<HTMLElement>(".menu-card");
+                const menuCards = root.querySelectorAll<HTMLElement>(".menu-item-card");
+
+                if (intro) {
+                    gsap.fromTo(
+                        intro,
+                        { y: 20, autoAlpha: 0 },
+                        {
+                            y: 0,
+                            autoAlpha: 1,
+                            duration: 0.75,
+                            ease: "power2.out",
+                            scrollTrigger: {
+                                trigger: intro,
+                                start: "top 86%",
+                                once: true,
+                            },
+                        },
+                    );
+                }
 
                 if (offerCards.length) {
                     gsap.fromTo(
                         offerCards,
-                        { y: 18, autoAlpha: 0 },
+                        { y: 22, autoAlpha: 0 },
                         {
                             y: 0,
                             autoAlpha: 1,
@@ -416,11 +525,11 @@ export default function Menu() {
                             y: 0,
                             autoAlpha: 1,
                             duration: 0.45,
-                            stagger: 0.035,
+                            stagger: 0.045,
                             ease: "power2.out",
                             scrollTrigger: {
                                 trigger: menuCards[0],
-                                start: "top 92%",
+                                start: "top 91%",
                                 once: true,
                             },
                         },
@@ -430,7 +539,11 @@ export default function Menu() {
 
             return () => media.revert();
         },
-        { scope: sectionRef, dependencies: [categories, activeTab, dataSource], revertOnUpdate: true },
+        {
+            scope: sectionRef,
+            dependencies: [categories, activeTab, dataSource],
+            revertOnUpdate: true,
+        },
     );
 
     const handleAddToCart = useCallback(
@@ -443,76 +556,166 @@ export default function Menu() {
                 image: getItemImage(item, categoryName),
                 categoryName,
             });
+
             setAddedId(item.id);
-            window.setTimeout(() => {
+
+            if (addedTimeoutRef.current !== null) {
+                window.clearTimeout(addedTimeoutRef.current);
+            }
+
+            addedTimeoutRef.current = window.setTimeout(() => {
                 setAddedId((current) => (current === item.id ? null : current));
+                addedTimeoutRef.current = null;
             }, 1200);
         },
         [addItem],
     );
 
-    const activeCategory = categories.find((category) => category.name === activeTab);
+    const handleRetry = useCallback(async () => {
+        setLoadError(false);
+        setDataSource("loading");
+
+        try {
+            const result = await fetchMenu();
+            const nextCategories = result.categories ?? [];
+            setCategories(nextCategories);
+            setDataSource(result.source);
+            setActiveTab(nextCategories[0]?.name ?? "");
+        } catch {
+            setCategories([]);
+            setLoadError(true);
+            setDataSource("static");
+        }
+    }, []);
+
+    const activeCategory =
+        categories.find((category) => category.name === activeTab) ?? categories[0];
+    const activeCategoryName = activeCategory?.name ?? "";
     const filteredItems = activeCategory?.items ?? [];
+
+    const handleTabKeyDown = useCallback(
+        (event: ReactKeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+            if (!categories.length) return;
+
+            let nextIndex = currentIndex;
+            if (event.key === "ArrowRight") {
+                nextIndex = (currentIndex + 1) % categories.length;
+            } else if (event.key === "ArrowLeft") {
+                nextIndex = (currentIndex - 1 + categories.length) % categories.length;
+            } else if (event.key === "Home") {
+                nextIndex = 0;
+            } else if (event.key === "End") {
+                nextIndex = categories.length - 1;
+            } else {
+                return;
+            }
+
+            event.preventDefault();
+            const nextCategory = categories[nextIndex];
+            setActiveTab(nextCategory.name);
+            document.getElementById(`menu-tab-${nextCategory.id}`)?.focus();
+        },
+        [categories],
+    );
 
     return (
         <section
             ref={sectionRef}
             id="menu"
             aria-labelledby="menu-heading"
-            className="relative w-full overflow-hidden bg-background pt-16 sm:pt-20 lg:pt-24"
+            className="relative w-full overflow-clip bg-cream pb-20 pt-16 text-espresso sm:pb-24 sm:pt-20 lg:pb-28 lg:pt-24"
         >
+            {/* Intro: make the breadth of the café menu clear at a glance. */}
             <div className="content-container relative z-10">
-                <header className="mb-9 flex flex-col gap-4 sm:mb-12 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+                <header className="menu-intro grid grid-cols-1 gap-6 border-b border-espresso/15 pb-8 sm:pb-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-end lg:gap-16">
                     <div>
-                        <p className="label-mini mb-3 font-semibold uppercase tracking-[0.2em] text-accent">
-                            From our kitchen
+                        <p className="label-mini mb-4 flex items-center gap-3 font-semibold text-accent">
+                            <span className="h-px w-8 bg-gold-cta" aria-hidden="true" />
+                            The Golden Moment menu
                         </p>
                         <h2
                             id="menu-heading"
-                            className="max-w-[720px] font-serif text-[clamp(2.8rem,5vw,4.5rem)] leading-[0.94] tracking-[-0.045em] text-text"
+                            className="max-w-[760px] font-display text-[clamp(2.7rem,5.3vw,5rem)] leading-[0.98] tracking-[-0.055em] text-espresso"
                         >
-                            Good food, all day.
+                            From morning favourites to a proper lunch.
                         </h2>
                     </div>
-                    <p className="max-w-[450px] text-[0.94rem] leading-[1.75] text-text-muted">
-                        From breakfast and artisan coffee to burgers, curries, pasta, momo
-                        and loaded chips. Made fresh, just the way a good café should.
-                    </p>
+
+                    <div className="lg:pb-1">
+                        <p className="max-w-[470px] text-[0.94rem] leading-[1.75] text-text-secondary sm:text-base">
+                            {SECTION_CONTENT.menu.description ||
+                                "Explore breakfast and brunch, coffee and drinks, plus satisfying café favourites — all in one place."}
+                        </p>
+                        <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2.5">
+                            {[
+                                "Breakfast & brunch",
+                                "Coffee & drinks",
+                                "Lunch favourites",
+                                "Office catering",
+                            ].map((label) => (
+                                <span
+                                    key={label}
+                                    className="inline-flex items-center gap-2 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-sienna-dark"
+                                >
+                                    <span
+                                        className="h-1.5 w-1.5 rounded-full bg-gold-cta"
+                                        aria-hidden="true"
+                                    />
+                                    {label}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
                 </header>
             </div>
 
-            <div className="content-container relative z-10 mb-12 sm:mb-14 lg:mb-16">
-                <div className="mb-4 flex items-center justify-between gap-4">
-                    <p className="label-mini font-semibold uppercase tracking-[0.16em] text-text-muted">
-                        Worth making time for
+            {/* Offers: three clear reasons to choose Golden Moment. */}
+            <div className="content-container relative z-10 mt-9 sm:mt-11 lg:mt-14">
+                <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p className="label-mini mb-2 font-semibold text-accent">
+                            Worth knowing
+                        </p>
+                        <h3 className="font-serif text-[1.9rem] leading-none tracking-[-0.035em] text-espresso sm:text-[2.15rem]">
+                            More ways to enjoy your day.
+                        </h3>
+                    </div>
+                    <p className="max-w-[360px] text-sm leading-relaxed text-text-muted sm:text-right">
+                        A quick breakfast, a lunch break or food for the whole team.
                     </p>
-                    <span className="hidden text-xs text-text-muted sm:block">
-                        A little something for every part of the day
-                    </span>
                 </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
                     {OFFERS.map((offer) => (
                         <PromotionCard key={offer.id} offer={offer} />
                     ))}
                 </div>
             </div>
 
-            <div className="sticky top-[72px] z-30 border-y border-border bg-background/95 py-3 shadow-[0_4px_16px_rgba(32,27,23,0.035)] backdrop-blur-xl sm:top-[88px]">
+            {/* Category navigation stays close to the menu items on scroll. */}
+            <div className="sticky top-[72px] z-30 mt-14 border-y border-espresso/10 bg-cream/95 py-3 shadow-[0_5px_20px_rgba(32,27,23,0.045)] backdrop-blur-xl sm:top-[88px] sm:mt-16">
                 <div className="content-container">
                     {dataSource === "loading" ? (
-                        <div className="flex gap-2 overflow-hidden py-1" aria-label="Loading menu categories">
+                        <div
+                            className="flex gap-2 overflow-hidden py-1"
+                            aria-label="Loading menu categories"
+                            aria-busy="true"
+                        >
                             {[1, 2, 3, 4].map((item) => (
-                                <div key={item} className="h-10 w-28 shrink-0 animate-pulse rounded-full bg-bone" />
+                                <div
+                                    key={item}
+                                    className="h-10 w-28 shrink-0 animate-pulse rounded-full bg-bone"
+                                />
                             ))}
                         </div>
                     ) : categories.length > 0 ? (
                         <div
                             role="tablist"
                             aria-label="Menu categories"
-                            className="hide-scrollbar flex items-center gap-2 overflow-x-auto py-1"
+                            className="flex items-center gap-2 overflow-x-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                         >
-                            {categories.map((category) => {
-                                const selected = activeTab === category.name;
+                            {categories.map((category, index) => {
+                                const selected = activeCategoryName === category.name;
                                 const tabId = `menu-tab-${category.id}`;
                                 const panelId = `menu-panel-${category.id}`;
 
@@ -526,20 +729,23 @@ export default function Menu() {
                                         aria-controls={panelId}
                                         tabIndex={selected ? 0 : -1}
                                         onClick={() => setActiveTab(category.name)}
+                                        onKeyDown={(event) => handleTabKeyDown(event, index)}
                                         className={[
                                             "inline-flex min-h-10 shrink-0 items-center gap-2.5 rounded-full border px-4 py-2",
-                                            "text-[0.68rem] font-semibold uppercase tracking-[0.1em] transition-colors duration-200",
+                                            "text-[0.66rem] font-bold uppercase tracking-[0.1em] transition-[background-color,border-color,color] duration-200",
                                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
                                             selected
                                                 ? "border-espresso bg-espresso text-cream"
-                                                : "border-border bg-surface-elevated text-text-muted hover:border-[#c8a77e] hover:text-text",
+                                                : "border-espresso/15 bg-transparent text-text-muted hover:border-sand hover:bg-[#eee7da] hover:text-espresso",
                                         ].join(" ")}
                                     >
                                         <span>{category.name}</span>
                                         <span
                                             className={[
-                                                "min-w-5 rounded-full px-1.5 py-0.5 text-center text-[0.62rem] tabular-nums",
-                                                selected ? "bg-white/15 text-white" : "bg-bone text-text-muted",
+                                                "min-w-5 rounded-full px-1.5 py-0.5 text-center text-[0.65rem] tabular-nums",
+                                                selected
+                                                    ? "bg-white/15 text-white"
+                                                    : "bg-bone text-text-muted",
                                             ].join(" ")}
                                         >
                                             {category.items?.length ?? 0}
@@ -556,62 +762,54 @@ export default function Menu() {
                 </div>
             </div>
 
-            <div className="content-container relative z-10 mt-10 sm:mt-12">
-                <div className="mb-7 flex flex-col gap-3 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
+            {/* Actual menu catalogue */}
+            <div
+                id="menu-items"
+                className="content-container relative z-10 scroll-mt-36 mt-10 sm:mt-12"
+            >
+                <div className="mb-7 flex flex-col gap-4 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="label-mini mb-2 font-semibold uppercase tracking-[0.16em] text-accent">
+                        <p className="label-mini mb-2 font-semibold text-accent">
                             Explore the menu
                         </p>
-                        <h3 className="font-serif text-[2.35rem] leading-none tracking-[-0.035em] text-text sm:text-[2.8rem]">
-                            {activeTab || (dataSource === "loading" ? "Preparing the menu" : "Menu")}
+                        <h3 className="font-serif text-[2.35rem] leading-[0.98] tracking-[-0.04em] text-espresso sm:text-[2.85rem]">
+                            {activeCategoryName ||
+                                (dataSource === "loading" ? "Preparing the menu" : "Our menu")}
                         </h3>
-                        <p className="mt-3 max-w-[520px] text-sm leading-relaxed text-text-muted">
-                            Thoughtful ingredients, familiar favourites, and something new to discover.
+                        <p className="mt-3 max-w-[500px] text-sm leading-relaxed text-text-secondary">
+                            {SECTION_CONTENT.menu.subDescription ||
+                                "Choose a favourite, add it to your order and make it a Golden Moment."}
                         </p>
                     </div>
+
                     {activeCategory && (
-                        <p className="text-xs font-medium uppercase tracking-[0.12em] text-text-muted">
+                        <p className="inline-flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-text-muted sm:pb-1">
+                            <span className="h-1.5 w-1.5 rounded-full bg-gold-cta" aria-hidden="true" />
                             {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}
                         </p>
                     )}
                 </div>
 
                 {dataSource === "loading" ? (
-                    <div className="grid grid-cols-1 gap-x-5 gap-y-9 sm:grid-cols-2 lg:grid-cols-4" aria-label="Loading menu items">
-                        {Array.from({ length: 8 }, (_, index) => (
-                            <div key={index} className="animate-pulse">
-                                <div className="mb-4 aspect-[4/3] rounded-xl bg-bone" />
-                                <div className="mb-3 h-5 w-3/4 rounded bg-bone" />
-                                <div className="mb-2 h-3 w-full rounded bg-bone" />
-                                <div className="h-3 w-2/3 rounded bg-bone" />
-                            </div>
-                        ))}
-                    </div>
+                    <MenuLoadingState />
                 ) : loadError ? (
-                    <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-                        <h4 className="font-serif text-2xl text-text">We couldn’t load the menu.</h4>
-                        <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-text-muted">
-                            Please try again in a moment, or contact the café and we’ll be happy to help.
+                    <div className="rounded-[1.35rem] border border-espresso/10 bg-[#eee7da] px-6 py-12 text-center sm:px-10">
+                        <p className="label-mini mb-3 font-semibold text-accent">
+                            Menu unavailable
+                        </p>
+                        <h4 className="font-serif text-3xl tracking-[-0.03em] text-espresso">
+                            We couldn&apos;t load the menu.
+                        </h4>
+                        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-text-muted">
+                            Please try again in a moment, or contact the café and our team will be happy to help.
                         </p>
                         <button
                             type="button"
-                            onClick={() => {
-                                setLoadError(false);
-                                setDataSource("loading");
-                                void fetchMenu()
-                                    .then((result) => {
-                                        setCategories(result.categories ?? []);
-                                        setDataSource(result.source);
-                                        setActiveTab(result.categories?.[0]?.name ?? "");
-                                    })
-                                    .catch(() => {
-                                        setLoadError(true);
-                                        setDataSource("fallback");
-                                    });
-                            }}
-                            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-espresso px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.1em] text-cream transition-colors hover:bg-[#a64c22] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+                            onClick={handleRetry}
+                            className="mt-6 inline-flex min-h-11 items-center justify-center gap-3 rounded-full bg-espresso px-6 py-3 text-[0.68rem] font-bold uppercase tracking-[0.12em] text-cream transition-[background-color,transform] duration-300 hover:-translate-y-0.5 hover:bg-sienna active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                         >
                             Try again
+                            <ArrowIcon className="h-4 w-4" />
                         </button>
                     </div>
                 ) : filteredItems.length > 0 ? (
@@ -619,35 +817,45 @@ export default function Menu() {
                         id={activeCategory ? `menu-panel-${activeCategory.id}` : "menu-panel"}
                         role="tabpanel"
                         aria-labelledby={activeCategory ? `menu-tab-${activeCategory.id}` : undefined}
-                        className="menu-grid grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4 lg:gap-x-4"
+                        className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-7 lg:gap-y-12 2xl:grid-cols-4"
                     >
                         {filteredItems.map((item) => {
                             const quantity = getItemQuantity(item.id);
+
                             return (
                                 <MenuItemCard
                                     key={item.id}
                                     item={item}
-                                    categoryName={activeTab}
+                                    categoryName={activeCategoryName}
                                     quantity={quantity}
                                     added={addedId === item.id}
-                                    onAdd={() => handleAddToCart(item, activeTab)}
-                                    onDecrease={() => updateQuantity(item.id, quantity - 1)}
+                                    onAdd={() => handleAddToCart(item, activeCategoryName)}
+                                    onDecrease={() =>
+                                        updateQuantity(item.id, Math.max(0, quantity - 1))
+                                    }
                                 />
                             );
                         })}
                     </div>
+                ) : categories.length > 0 ? (
+                    <div className="rounded-[1.35rem] border border-dashed border-espresso/20 px-6 py-14 text-center">
+                        <h4 className="font-serif text-2xl tracking-[-0.03em] text-espresso">
+                            Nothing on this menu just yet.
+                        </h4>
+                        <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                            Please check another category or ask our team about today&apos;s specials.
+                        </p>
+                    </div>
                 ) : (
-                    <div className="rounded-2xl border border-dashed border-border px-6 py-12 text-center">
-                        <h4 className="font-serif text-2xl text-text">Nothing on this menu just yet.</h4>
-                        <p className="mt-2 text-sm text-text-muted">
-                            Please check another category or ask our team about today’s specials.
+                    <div className="rounded-[1.35rem] border border-espresso/10 bg-[#eee7da] px-6 py-12 text-center">
+                        <h4 className="font-serif text-2xl tracking-[-0.03em] text-espresso">
+                            Our menu is being updated.
+                        </h4>
+                        <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                            Please contact the café for today&apos;s menu.
                         </p>
                     </div>
                 )}
-            </div>
-
-            <div className="relative z-10 mt-16 pb-16 sm:mt-20 sm:pb-20">
-                <GMDivider leftText="Golden Moment" rightText="Canberra · ACT" />
             </div>
         </section>
     );

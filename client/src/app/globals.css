@@ -9,6 +9,7 @@
 @theme {
   /* TYPOGRAPHY */
   --font-display: var(--font-display-family);
+  --font-serif: var(--font-display-family), Georgia, serif;
   --font-sans: var(--font-sans-family);
   --font-signature: var(--font-signature-family), "Segoe Print",
     "Bradley Hand", cursive;
@@ -18,10 +19,30 @@
   --color-bone: #e9e0d2;
   --color-sand: #c9b89f;
   --color-espresso: #201b17;
+  --color-espresso-muted: #1a1512;
+  --color-espresso-deep: #0a0806;
   --color-cocoa: #513b2d;
   --color-terracotta: #a86145;
   --color-olive: #74745e;
   --color-white: #fffdf8;
+
+  /* GOLD & WARM ACCENTS */
+  --color-gold: #d49a32;
+  --color-gold-hover: #e3b04f;
+  --color-gold-deep: #b8741e;
+  --color-gold-light: #e5bc78;
+  --color-gold-pale: #f0d6a6;
+  --color-gold-warm: #d2a373;
+  --color-gold-copper: #c4956a;
+  --color-gold-cta: #c98327;
+
+  /* EARTH & SIENNA ACCENTS */
+  --color-sienna: #a64c22;
+  --color-sienna-dark: #8d451f;
+  --color-warm-gray: #716357;
+
+  /* FUNCTIONAL */
+  --color-success: #426a4a;
 
   /* SEMANTIC COLORS */
   --color-background: #f4efe6;
@@ -34,11 +55,11 @@
 
   --color-text: #201b17;
   --color-text-secondary: #513b2d;
-  --color-text-muted: #74745e;
+  --color-text-muted: #5e5449;
   --color-text-inverse: #f4efe6;
 
-  --color-accent: #a86145;
-  --color-accent-hover: #513b2d;
+  --color-accent: #984b28;
+  --color-accent-hover: #483427;
 
   --color-border: rgb(32 27 23 / 12%);
   --color-border-strong: rgb(32 27 23 / 22%);
@@ -195,6 +216,37 @@
     font-weight: 400;
     letter-spacing: -0.035em;
     line-height: 0.98;
+  }
+
+  .section-heading {
+    font-family: var(--font-display-family), Georgia, serif;
+    font-size: clamp(2.5rem, 4.8vw, 4.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+  }
+
+  .section-lead {
+    font-family: var(--font-sans-family);
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+    max-width: 520px;
+  }
+
+  @media (min-width: 640px) {
+    .section-lead {
+      font-size: 1.0625rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section-lead {
+      font-size: 1.125rem;
+    }
+  }
+
+  .section-lead-inverse {
+    color: var(--color-cream);
   }
 
   .eyebrow {

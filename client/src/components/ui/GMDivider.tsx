@@ -24,11 +24,11 @@ export default function GMDivider({
 }: GMDividerProps) {
     const isLight = variant === "light";
 
-    const ruleColor = isLight ? "bg-border" : "bg-[#c4956a]/15";
-    const monogramColor = isLight ? "text-text" : "text-[#c4956a]/40";
-    const textColor = isLight ? "text-text-muted" : "text-[#c4956a]/40";
+    const ruleColor = isLight ? "bg-border" : "bg-gold-copper/15";
+    const monogramColor = isLight ? "text-text" : "text-gold-copper/40";
+    const textColor = isLight ? "text-text-muted" : "text-gold-copper/40";
     const borderColor = isLight ? "" : "border-t border-white/[0.06]";
-    const bgColor = isLight ? "bg-background" : "bg-[#1a1512]";
+    const bgColor = isLight ? "bg-background" : "bg-espresso-muted";
 
     return (
         <div className={`${bgColor} ${borderColor} ${className}`} aria-hidden="true">

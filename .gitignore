@@ -41,3 +41,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# archives & local test runs
+*.zip
+.taste-skill/
+

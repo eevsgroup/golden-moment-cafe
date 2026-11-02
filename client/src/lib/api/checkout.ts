@@ -1,14 +1,26 @@
 
 /**
  * Checkout API calls for Golden Moment Café.
+ *
+ * When the backend is disabled, checkout operations return a clear
+ * "not available" message instead of attempting network requests.
  */
 
+import { APP_CONFIG } from "@/lib/config";
 import { api } from "./client";
 import type {
     CheckoutSessionRequest,
     CheckoutSessionResponse,
     Order,
 } from "@golden-moment/contracts";
+
+/**
+ * Whether online checkout is currently available.
+ * Components can use this to show/hide checkout UI.
+ */
+export function isCheckoutAvailable(): boolean {
+    return APP_CONFIG.backendEnabled;
+}
 
 /**
  * Creates a Stripe Checkout session.
@@ -20,6 +32,13 @@ export async function createCheckoutSession(
     payload: CheckoutSessionRequest,
     idempotencyKey: string
 ): Promise<{ url: string | null; error: string | null }> {
+    if (!APP_CONFIG.backendEnabled) {
+        return {
+            url: null,
+            error: "Online ordering is coming soon. Please call or visit us to place your order.",
+        };
+    }
+
     if (!idempotencyKey.trim()) {
         return {
             url: null,
@@ -66,6 +85,13 @@ export async function createCheckoutSession(
 export async function fetchOrder(
     sessionId: string
 ): Promise<{ order: Order | null; error: string | null }> {
+    if (!APP_CONFIG.backendEnabled) {
+        return {
+            order: null,
+            error: "Order lookup is not available in offline mode.",
+        };
+    }
+
     if (!sessionId.trim()) {
         return {
             order: null,

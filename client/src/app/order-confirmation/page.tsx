@@ -50,7 +50,7 @@ export default function OrderConfirmationPage({
         return (
             <main className="min-h-screen bg-background flex items-center justify-center px-4 py-16 sm:py-24">
                 <div className="max-w-md w-full text-center">
-                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 text-amber-700 shadow-sm text-3xl">
+                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gold-pale/40 text-gold-deep shadow-sm text-3xl">
                         ☕
                     </div>
                     <h1 className="font-serif text-[clamp(2rem,4vw,2.8rem)] leading-tight text-text mb-3">
@@ -62,13 +62,13 @@ export default function OrderConfirmationPage({
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <Link
                             href="/#menu"
-                            className="inline-flex items-center justify-center rounded-full bg-accent text-white px-8 py-3.5 font-sans text-[13px] font-semibold uppercase tracking-wider transition-all hover:bg-accent-hover shadow-sm"
+                            className="inline-flex items-center justify-center rounded-full bg-accent text-white px-8 py-3.5 font-sans text-[13px] font-semibold uppercase tracking-wider transition-all hover:bg-accent-hover"
                         >
                             View Menu & Order
                         </Link>
                         <Link
                             href="/"
-                            className="inline-flex items-center justify-center rounded-full border border-border bg-white text-text px-8 py-3.5 font-sans text-[13px] font-semibold uppercase tracking-wider transition-all hover:border-accent hover:text-accent shadow-sm"
+                            className="inline-flex items-center justify-center rounded-full border border-border bg-white text-text px-8 py-3.5 font-sans text-[13px] font-semibold uppercase tracking-wider transition-all hover:border-accent hover:text-accent"
                         >
                             Back to Home
                         </Link>
@@ -83,7 +83,7 @@ export default function OrderConfirmationPage({
             <div className="max-w-xl w-full">
                 {/* Status Hero */}
                 <div className="text-center mb-10">
-                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600 shadow-sm">
+                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-success/15 text-success shadow-sm">
                         <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M20 6L9 17l-5-5" />
                         </svg>
@@ -106,8 +106,8 @@ export default function OrderConfirmationPage({
                             <span className="font-sans text-[11px] uppercase tracking-[0.2em] text-accent font-semibold block">
                                 Status
                             </span>
-                            <span className="inline-flex items-center gap-1.5 font-sans text-[13px] font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full mt-1">
-                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="inline-flex items-center gap-1.5 font-sans text-[13px] font-bold text-success bg-success/10 px-2.5 py-1 rounded-full mt-1">
+                                <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
                                 {order?.status || "PAID / PREPARING"}
                             </span>
                         </div>
@@ -207,13 +207,13 @@ export default function OrderConfirmationPage({
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Link
                         href="/"
-                        className="inline-flex items-center justify-center rounded-full bg-accent text-white px-8 py-3.5 font-sans text-[13px] font-semibold uppercase tracking-wider transition-all hover:bg-accent-hover shadow-sm"
+                        className="inline-flex items-center justify-center rounded-full bg-accent text-white px-8 py-3.5 font-sans text-[13px] font-semibold uppercase tracking-wider transition-all hover:bg-accent-hover"
                     >
                         Back to Home
                     </Link>
                     <Link
                         href="/#menu"
-                        className="inline-flex items-center justify-center rounded-full border border-border bg-white text-text px-8 py-3.5 font-sans text-[13px] font-semibold uppercase tracking-wider transition-all hover:border-accent hover:text-accent shadow-sm"
+                        className="inline-flex items-center justify-center rounded-full border border-border bg-white text-text px-8 py-3.5 font-sans text-[13px] font-semibold uppercase tracking-wider transition-all hover:border-accent hover:text-accent"
                     >
                         Order Again
                     </Link>

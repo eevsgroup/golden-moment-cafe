@@ -48,9 +48,9 @@ export default function CartNotification() {
             role="status"
             aria-live="polite"
         >
-            <div className="relative overflow-hidden rounded-2xl border border-amber-300/40 bg-[#1c1613]/95 text-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+            <div className="relative overflow-hidden rounded-2xl border border-gold-light/30 bg-espresso/95 text-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-xl">
                 {/* Glowing top line */}
-                <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-amber-400 via-orange-500 to-amber-300" />
+                <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-gold via-accent to-gold-light" />
 
                 <div className="flex items-start gap-3.5">
                     {/* Item Thumbnail or Fallback Icon */}
@@ -68,7 +68,7 @@ export default function CartNotification() {
                                 ☕
                             </div>
                         )}
-                        <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[#1a1410] text-[10px] font-black shadow-sm">
+                        <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gold text-espresso text-[10px] font-black">
                             +{quantityAdded}
                         </span>
                     </div>
@@ -76,8 +76,8 @@ export default function CartNotification() {
                     {/* Details */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                            <span className="inline-flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                                <svg className="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <span className="inline-flex items-center gap-1 font-sans text-[11px] font-bold uppercase tracking-wider text-gold">
+                                <svg className="w-3.5 h-3.5 text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                                     <path d="M20 6L9 17l-5-5" />
                                 </svg>
                                 Added to Order
@@ -92,12 +92,12 @@ export default function CartNotification() {
                             </button>
                         </div>
 
-                        <h4 className="font-serif text-[16px] text-white font-medium truncate mt-0.5">
+                        <h4 className="font-serif text-base text-white font-medium truncate mt-0.5">
                             {item.name}
                         </h4>
 
-                        <div className="flex items-center gap-2 mt-1 text-[12px] text-white/70">
-                            <span className="font-semibold text-amber-300">
+                        <div className="flex items-center gap-2 mt-1 text-xs text-white/70">
+                            <span className="font-semibold text-gold-light">
                                 ${(item ? (item.price * quantityAdded) / 100 : 0).toFixed(2)}
                             </span>
                             <span>•</span>
@@ -110,8 +110,8 @@ export default function CartNotification() {
 
                 {/* Subtotal & Quick Actions Bar */}
                 <div className="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between gap-3">
-                    <div className="text-[12px] leading-tight">
-                        <span className="text-white/50 text-[10px] uppercase tracking-wider block">Cart Total</span>
+                    <div className="text-xs leading-tight">
+                        <span className="text-white/50 text-[11px] uppercase tracking-wider block">Cart Total</span>
                         <span className="font-sans font-bold text-white">
                             {itemCount} {itemCount === 1 ? "item" : "items"} · ${(subtotal / 100).toFixed(2)}
                         </span>
@@ -122,7 +122,7 @@ export default function CartNotification() {
                             handleDismiss();
                             openCart();
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-[#1a1410] px-4 py-1.5 font-sans text-[11px] font-bold uppercase tracking-wider shadow-sm transition-transform active:scale-95"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-gold-cta hover:bg-gold-deep text-espresso px-4 py-1.5 font-sans text-[11px] font-bold uppercase tracking-wider transition-all active:scale-95"
                     >
                         <span>View Order</span>
                         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

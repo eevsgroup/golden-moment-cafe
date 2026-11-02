@@ -5,24 +5,13 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-/**
- * Owns the <section> and the scroll reveal. Children are server-rendered markup
- * whose animated nodes carry `.food-anim` plus one specific class.
- *
- * Hidden-state strategy
- * ---------------------
- * - Before JS runs, `.food-anim` is `visibility: hidden` ONLY when the user has not
- *   asked for reduced motion (`motion-safe:`) and the reveal hasn't been armed yet
- *   (`:not([data-revealed])`). That removes the SSR flash on deep links.
- * - Once the timeline is built, GSAP's inline styles hold the hidden state and
- *   `data-revealed` is set, so the CSS gate steps aside.
- * - Reduced motion: the timeline never runs and nothing is ever hidden.
- * - Print always shows everything.
- * - Failsafe: if the trigger never fires but the section is on screen, play anyway.
- */
-export default function FoodReveal({ children }: { children: ReactNode }) {
+type FoodRevealProps = {
+    children: ReactNode;
+};
+
+export default function FoodReveal({ children }: FoodRevealProps) {
     const sectionRef = useRef<HTMLElement>(null);
 
     useGSAP(
@@ -30,76 +19,231 @@ export default function FoodReveal({ children }: { children: ReactNode }) {
             const section = sectionRef.current;
             if (!section) return;
 
-            const mm = gsap.matchMedia();
+            const select = gsap.utils.selector(section);
+            const all = select(".food-anim");
 
-            mm.add("(prefers-reduced-motion: no-preference)", () => {
-                const q = gsap.utils.selector(section);
-                const all = q(".food-anim");
+            if (!all.length) return;
 
-                const reveal = () => {
-                    section.dataset.revealed = "true";
-                };
+            // No hidden CSS is required. If JavaScript is unavailable,
+            // the server-rendered content remains visible.
+            if (
+                window.matchMedia(
+                    "(prefers-reduced-motion: reduce)"
+                ).matches
+            ) {
+                return;
+            }
 
-                try {
-                    const tl = gsap.timeline({
-                        scrollTrigger: {
-                            trigger: section,
-                            start: "top 65%",
-                            once: true,
-                        },
-                        defaults: { ease: "power3.out" },
-                        onComplete: () => {
-                            // Drop leftover transform / clip-path so they stop creating
-                            // stacking contexts. Opacity/visibility are already at rest.
-                            gsap.set(all, { clearProps: "transform,clipPath" });
-                        },
-                    });
+            const media = gsap.matchMedia();
 
-                    tl.fromTo(q(".food-header"), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.7 }, 0)
-                        .fromTo(
-                            q(".food-main-img"),
-                            { autoAlpha: 0, y: 45, clipPath: "inset(0 0 10% 0)" },
-                            { autoAlpha: 1, y: 0, clipPath: "inset(0 0 0% 0)", duration: 1.25, ease: "power2.out" },
-                            0.1
-                        )
-                        .fromTo(q(".food-rail"), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8 }, 0.4)
-                        .fromTo(q(".food-eyebrow"), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.7 }, 0.2)
-                        .fromTo(
-                            q(".food-headline-line"),
-                            { autoAlpha: 0, y: "105%" },
-                            { autoAlpha: 1, y: "0%", duration: 0.95, stagger: 0.11, ease: "power4.out" },
-                            0.3
-                        )
-                        .fromTo(q(".food-body"), { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.8 }, 0.72)
-                        .fromTo(q(".food-script"), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.75 }, 0.88)
-                        .fromTo(q(".food-cta"), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.65 }, 1.02)
-                        .fromTo(
-                            q(".food-support-img"),
-                            { autoAlpha: 0, y: 28 },
-                            { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.14 },
-                            0.2
-                        )
-                        .fromTo(q(".food-meta"), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.75, stagger: 0.08 }, 1.08)
-                        .fromTo(q(".food-signature"), { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.8 }, 1.2);
+            media.add(
+                "(prefers-reduced-motion: no-preference)",
+                () => {
+                    let timeline: gsap.core.Timeline | undefined;
+                    let fallback: gsap.core.Tween | undefined;
 
-                    // Inline hidden styles are in place now; the CSS gate can step aside.
-                    reveal();
+                    try {
+                        const header = select(".food-header");
+                        const mainImage = select(".food-main-img");
+                        const rail = select(".food-rail");
+                        const eyebrow = select(".food-eyebrow");
+                        const headline = select(".food-headline-line");
+                        const body = select(".food-body");
+                        const script = select(".food-script");
+                        const cta = select(".food-cta");
+                        const supportingImages = select(".food-support-img");
+                        const meta = select(".food-meta");
 
-                    // Failsafe: trigger never fired (odd scroller/layout) but we're on screen.
-                    gsap.delayedCall(5, () => {
-                        if (tl.progress() === 0 && section.getBoundingClientRect().top < window.innerHeight) {
-                            tl.play();
-                        }
-                    });
-                } catch (err) {
-                    // Never leave content hidden because of an animation error.
-                    console.error("[Food] reveal failed, showing content", err);
-                    gsap.set(all, { clearProps: "all" });
-                    reveal();
+                        // Set initial states before the reveal timeline begins.
+                        gsap.set(all, {
+                            autoAlpha: 0,
+                        });
+
+                        gsap.set(mainImage, {
+                            y: 36,
+                            clipPath: "inset(0 0 10% 0)",
+                        });
+
+                        gsap.set(headline, {
+                            yPercent: 105,
+                        });
+
+                        gsap.set(eyebrow, {
+                            y: 14,
+                        });
+
+                        gsap.set(body, {
+                            y: 16,
+                        });
+
+                        gsap.set(script, {
+                            y: 12,
+                        });
+
+                        gsap.set(cta, {
+                            y: 12,
+                        });
+
+                        gsap.set(supportingImages, {
+                            y: 28,
+                        });
+
+                        timeline = gsap.timeline({
+                            scrollTrigger: {
+                                trigger: section,
+                                start: "top 65%",
+                                once: true,
+                            },
+                            defaults: {
+                                ease: "power3.out",
+                            },
+                            onComplete: () => {
+                                gsap.set(all, {
+                                    clearProps: "transform,clipPath",
+                                });
+                            },
+                        });
+
+                        timeline
+                            .to(
+                                header,
+                                {
+                                    autoAlpha: 1,
+                                    duration: 0.65,
+                                },
+                                0
+                            )
+                            .to(
+                                mainImage,
+                                {
+                                    autoAlpha: 1,
+                                    y: 0,
+                                    clipPath: "inset(0 0 0% 0)",
+                                    duration: 1.2,
+                                    ease: "power2.out",
+                                },
+                                0.05
+                            )
+                            .to(
+                                rail,
+                                {
+                                    autoAlpha: 1,
+                                    duration: 0.7,
+                                },
+                                0.3
+                            )
+                            .to(
+                                eyebrow,
+                                {
+                                    autoAlpha: 1,
+                                    y: 0,
+                                    duration: 0.65,
+                                },
+                                0.2
+                            )
+                            .to(
+                                headline,
+                                {
+                                    autoAlpha: 1,
+                                    yPercent: 0,
+                                    duration: 0.9,
+                                    stagger: 0.12,
+                                    ease: "power4.out",
+                                },
+                                0.3
+                            )
+                            .to(
+                                body,
+                                {
+                                    autoAlpha: 1,
+                                    y: 0,
+                                    duration: 0.75,
+                                },
+                                0.7
+                            )
+                            .to(
+                                script,
+                                {
+                                    autoAlpha: 1,
+                                    y: 0,
+                                    duration: 0.75,
+                                },
+                                0.88
+                            )
+                            .to(
+                                cta,
+                                {
+                                    autoAlpha: 1,
+                                    y: 0,
+                                    duration: 0.65,
+                                },
+                                1
+                            )
+                            .to(
+                                supportingImages,
+                                {
+                                    autoAlpha: 1,
+                                    y: 0,
+                                    duration: 0.85,
+                                    stagger: 0.13,
+                                },
+                                0.18
+                            )
+                            .to(
+                                meta,
+                                {
+                                    autoAlpha: 1,
+                                    duration: 0.65,
+                                    stagger: 0.08,
+                                }
+                            );
+
+                        // Fallback for unusual scroll restoration or layout timing.
+                        fallback = gsap.delayedCall(2, () => {
+                            const rect = section.getBoundingClientRect();
+
+                            const isAlreadyInView =
+                                rect.top < window.innerHeight * 0.65 &&
+                                rect.bottom > 0;
+
+                            if (
+                                timeline &&
+                                timeline.progress() === 0 &&
+                                isAlreadyInView
+                            ) {
+                                timeline.play();
+                            }
+                        });
+                    } catch (error) {
+                        console.error(
+                            "[FoodReveal] Animation initialization failed:",
+                            error
+                        );
+
+                        timeline?.kill();
+
+                        // Restore content if animation setup fails.
+                        gsap.set(all, {
+                            clearProps: "all",
+                        });
+                    }
+
+                    return () => {
+                        timeline?.kill();
+                        fallback?.kill();
+                    };
                 }
-            });
+            );
+
+            return () => {
+                media.revert();
+            };
         },
-        { scope: sectionRef }
+        {
+            scope: sectionRef,
+            dependencies: [],
+            revertOnUpdate: true,
+        }
     );
 
     return (
@@ -107,7 +251,7 @@ export default function FoodReveal({ children }: { children: ReactNode }) {
             id="food"
             ref={sectionRef}
             aria-labelledby="food-heading"
-            className="bg-background section-padding overflow-hidden motion-safe:[&:not([data-revealed])_.food-anim]:invisible print:[&_.food-anim]:!visible"
+            className="bg-background pt-12 sm:pt-14 lg:pt-16 pb-10 sm:pb-12 lg:pb-12 overflow-hidden print:[&_.food-anim]:!visible print:[&_.food-anim]:!opacity-100"
         >
             {children}
         </section>

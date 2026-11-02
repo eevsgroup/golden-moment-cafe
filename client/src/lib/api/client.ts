@@ -10,8 +10,9 @@
  */
 
 import type { ApiResult } from "@/lib/types";
+import { APP_CONFIG } from "@/lib/config";
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+const API_BASE = APP_CONFIG.apiBaseUrl;
 
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_RETRIES = 2;

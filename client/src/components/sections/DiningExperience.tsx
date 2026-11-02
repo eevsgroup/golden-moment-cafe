@@ -8,15 +8,12 @@ import Link from "next/link";
 
 import { useRef } from "react";
 
-import GMDivider from "@/components/ui/GMDivider";
-
 import gsap from "gsap";
 
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { useGSAP } from "@gsap/react";
-
-
+import { SECTION_CONTENT } from "@/lib/data/sections";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -146,7 +143,7 @@ export default function DiningExperience() {
 
             aria-labelledby="experience-heading"
 
-            className="relative w-full overflow-hidden bg-[#1a1512]"
+            className="relative w-full overflow-hidden bg-espresso-muted"
 
         >
 
@@ -200,9 +197,9 @@ export default function DiningExperience() {
 
                         {/* Smooth, subtle gradients */}
 
-                        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1a1512]/40 via-[#1a1512]/0 to-[#1a1512]/0" />
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-espresso-muted/40 via-espresso-muted/0 to-espresso-muted/0" />
 
-                        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#1a1512]/20 via-[#1a1512]/0 to-[#1a1512]/0" />
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-espresso-muted/20 via-espresso-muted/0 to-espresso-muted/0" />
 
 
 
@@ -252,7 +249,7 @@ export default function DiningExperience() {
 
                 {/* ── RIGHT: Dark Editorial Panel (50%) ── */}
 
-                <div className="w-full lg:w-1/2 flex items-center bg-[#1a1512]">
+                <div className="w-full lg:w-1/2 flex items-center bg-espresso-muted">
 
                     {/* Notice the large lg:pl-[140px] to make room for the floating image */}
 
@@ -266,9 +263,9 @@ export default function DiningExperience() {
 
                             <div className="anim-fade invisible flex items-center gap-4 mb-8">
 
-                                <span className="w-7 h-px bg-[#c4956a]/50" />
+                                <span className="w-7 h-px bg-gold-copper/50" />
 
-                                <span className="label-micro text-[#c4956a] tracking-[0.2em]">
+                                <span className="label-micro text-gold-copper tracking-[0.2em]">
 
                                     The Experience
 
@@ -284,7 +281,7 @@ export default function DiningExperience() {
 
                                 <span className="block overflow-hidden pb-1">
 
-                                    <span className="anim-line block font-serif text-[clamp(2.6rem,4.5vw,4rem)] leading-[1.05] tracking-[-0.02em] text-[#f4efe6]">
+                                    <span className="anim-line block font-serif text-[clamp(2.5rem,4.8vw,4.25rem)] leading-[1.05] tracking-[-0.035em] text-cream">
 
                                         Stay for
 
@@ -294,7 +291,7 @@ export default function DiningExperience() {
 
                                 <span className="block overflow-hidden pb-1">
 
-                                    <span className="anim-line block font-serif text-[clamp(2.6rem,4.5vw,4rem)] leading-[1.05] tracking-[-0.02em] text-[#f4efe6]">
+                                    <span className="anim-line block font-serif text-[clamp(2.5rem,4.8vw,4.25rem)] leading-[1.05] tracking-[-0.035em] text-cream">
 
                                         the moment.
 
@@ -308,34 +305,15 @@ export default function DiningExperience() {
 
                             {/* Body */}
 
-                            <p className="anim-fade invisible font-sans text-[14px] sm:text-[14.5px] leading-[1.85] text-[#c9b89f]/70">
-
-                                Relaxed in Canberra, Golden Moment is more than
-
-                                a café — it's a place to slow down, connect and
-
-                                savour the simple things. Great coffee, seasonal food
-
-                                and a warm, welcoming space, right in the heart
-
-                                of our city.
-
+                            <p className="anim-fade invisible section-lead section-lead-inverse">
+                                {SECTION_CONTENT.dining.description}
                             </p>
 
-
-
                             {/* Handwritten signature */}
-
                             <p
-
-                                className="anim-fade invisible mt-8 text-[2.15rem] sm:text-[2rem] text-[#c4956a] -rotate-[2deg] origin-left"
-
-                                style={{ fontFamily: 'var(--font-signature, "Segoe Print", "Bradley Hand", cursive)' }}
-
+                                className="anim-fade invisible mt-8 font-signature text-[2rem] sm:text-[2.35rem] text-gold-copper -rotate-[2deg] origin-left"
                             >
-
-                                made here, enjoyed slowly.
-
+                                {SECTION_CONTENT.dining.script}
                             </p>
 
 
@@ -346,7 +324,7 @@ export default function DiningExperience() {
 
                                 href="#contact"
 
-                                className="anim-fade invisible group inline-flex items-center gap-3 mt-10 bg-[#c4956a] text-[#1a1512] rounded-full px-8 py-3.5 transition-all duration-300 hover:bg-[#d4a87a] hover:scale-[1.02] active:scale-[0.98]"
+                                className="anim-fade invisible group inline-flex items-center gap-3 mt-10 bg-gold-copper text-espresso-muted rounded-full px-8 py-3.5 transition-all duration-300 hover:bg-gold-warm hover:scale-[1.02] active:scale-[0.98]"
 
                             >
 
@@ -429,11 +407,11 @@ export default function DiningExperience() {
                     </div>
 
                     <div className="mt-3 mx-auto flex w-max flex-col items-center gap-1.5">
-                        <p className="w-fit rounded-lg border border-white/10 bg-[#1a1512]/90 backdrop-blur-sm px-3 py-2 font-sans text-[12px] uppercase tracking-[0.18em] text-[#f4efe6]/90 font-semibold shadow-lg">
+                        <p className="w-fit rounded-lg border border-white/10 bg-espresso-muted/90 backdrop-blur-sm px-3 py-2 font-sans text-[12px] uppercase tracking-[0.18em] text-cream/90 font-semibold">
                             Inside Golden Moment
                         </p>
 
-                        <p className="w-fit rounded-lg border border-white/10 bg-[#1a1512]/90 backdrop-blur-sm px-3 py-1.5 font-sans text-[14px] text-[#c9b89f]/90 shadow-lg">
+                        <p className="w-fit rounded-lg border border-white/10 bg-espresso-muted/90 backdrop-blur-sm px-3 py-1.5 font-sans text-[14px] text-sand/90">
                             Canberra · Est. 2024
                         </p>
                     </div>
@@ -465,12 +443,6 @@ export default function DiningExperience() {
                 </div>
 
             </div>
-
-
-
-            {/* ── Bottom GM Divider ── */}
-
-            <GMDivider variant="dark" className="relative z-[2]" />
 
         </section>
 
